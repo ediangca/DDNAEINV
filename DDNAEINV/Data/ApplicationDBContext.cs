@@ -1,0 +1,413 @@
+﻿using System.Collections.Generic;
+using DDNAEINV.Model.Details;
+using DDNAEINV.Model.Entities;
+using DDNAEINV.Model.Views;
+using Microsoft.EntityFrameworkCore;
+
+namespace DDNAEINV.Data
+{
+    public class ApplicationDBContext : DbContext
+    {
+        //public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
+        //{
+
+        //}
+
+        public ApplicationDBContext(DbContextOptions options) : base(options)
+        {
+
+        }
+
+        public DbSet<Branch> Branches { get; set; }
+        public DbSet<BranchType> BranchTypes { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<Section> Sections { get; set; }
+        public DbSet<Position> Positions { get; set; }
+        public DbSet<UserAccount> UserAccounts { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<ItemGroup> ItemGroups { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Par> PARS { get; set; }
+        public DbSet<ParItem> PARItems { get; set; }
+        public DbSet<RePAR> REPARS { get; set; }
+        public DbSet<ICS> ICSs { get; set; }
+        public DbSet<ICSItem> ICSItems { get; set; }
+        public DbSet<ITR> ITRS { get; set; }
+        public DbSet<PRS> PRSS { get; set; }
+        public DbSet<RRSEP> RRSEPS { get; set; }
+        public DbSet<Module> Modules { get; set; }
+        public DbSet<Privilege> Privileges { get; set; }
+
+        //Views
+        public DbSet<BranchesVw> ListOfBranch { get; set; } //List of Branch Details
+        public DbSet<DepartmentsVw> ListOfDeparment { get; set; } //List of Department Details
+        public DbSet<SectionsVw> ListOfSection { get; set; } //List of Section Details
+        public DbSet<AccountID> GeneratedAccID { get; set; } //Generate User Account ID
+        public DbSet<UserAccountsVw> ListOfUserAccount { get; set; } //List of User Account Details
+        public DbSet<UserProfileVw> ListOfProfile { get; set; } //List of User Profile Details
+        public DbSet<ItemVw> ListOfItem { get; set; } //List of Item
+        public DbSet<ParVw> ListOfPar { get; set; } //List of PAR
+        public DbSet<CencusVw> Cencus { get; set; } //List of Census
+        public DbSet<RePARVw> ListOfREPar { get; set; } //List of REPAR
+        public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
+        public DbSet<RRSEPVw> ListOfRRSEP { get; set; } //List of RRSEP
+
+
+        public DbSet<ICSItemVw> ListOfPostedICSItems { get; set; } //List of Posted ICS Items
+
+
+        public DbSet<ITRVw> ListOfITR { get; set; } //List of ITR
+        public DbSet<ICSVw> ListOfICS { get; set; } //List of ICS
+        public DbSet<PrivilegeVw> ListOfPrivilege { get; set; } //List of Privilege
+
+        public DbSet<ActivityLogVw> ListOfActivity { get; set; } //List of Privilege
+
+        //Offices Property Cencus
+        //List of offices and census of PAR, PTR, PRS, ICS, ITR AND RRSEP by each Transaction
+        public DbSet<PAROfficesVw> ListPAROffices { get; set; }
+        public DbSet<REPAROfficesVw> ListREPAROffices { get; set; }
+        public DbSet<PRSOfficesVw> ListPRSOffices { get; set; }
+        public DbSet<ICSOfficesVw> ListICSOffices { get; set; }
+        public DbSet<ITROfficesVw> ListITROffices { get; set; }
+        public DbSet<RRSEPOfficesVw> ListRRSEPOffices { get; set; }
+        public DbSet<Above50KOffices> ListofAbove50KOffices { get; set; }
+        public DbSet<Below50KOffices> ListofBelow50KOffices { get; set; }
+
+        //Reports View
+        public DbSet<PARItemsDetailsVw> ListOfPARByOffice { get; set; } //List of PAR Items Details
+        public DbSet<REPARItemsDetailsVw> ListOfREPARByOffice { get; set; } //List of REPAR Items Details
+        public DbSet<PRSItemsDetailsVw> ListOfPRSByOffice { get; set; } //List of PRS Items Details
+
+
+        public DbSet<ICSItemsDetailsVw> ListOfICSByOffice { get; set; } //List of ICS Items Details
+        public DbSet<ITRItemsDetailsVw> ListOfITRByOffice { get; set; } //List of ITR Items Details
+        public DbSet<RRSEPItemsDetailsVw> ListOfRRSEPByOffice { get; set; } //List of RRSEP Items Details
+        public DbSet<SummaryItemsA50kDetailsVw> ListOfAbove50KByOffice { get; set; } //List of Above 50K Items Details
+        public DbSet<SummaryItemsB50kDetailsVw> ListOfBelow50KByOffice { get; set; } //List of Below 50K Items Details
+
+        //Function
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Branch>(entity =>
+            {
+                entity.HasKey(e => e.BranchID); // Configuring primary key
+                                                // Other configurations...
+            });
+            modelBuilder.Entity<BranchType>(entity =>
+            {
+                entity.HasKey(e => e.BTID); // Configuring primary key
+                                            // Other configurations...
+                entity.Property(e => e.BTID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<Department>(entity =>
+            {
+                entity.HasKey(e => e.DepID); // Configuring primary key
+                                             // Other configurations...
+                entity.Property(e => e.DepID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<Section>(entity =>
+            {
+                entity.HasKey(e => e.SecID); // Configuring primary key
+                                             // Other configurations...
+                entity.Property(e => e.SecID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<Position>(entity =>
+            {
+                entity.HasKey(e => e.PositionID); // Configuring primary key
+                                                  // Other configurations...
+                entity.Property(e => e.PositionID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<UserAccount>(entity =>
+            {
+                entity.HasKey(e => e.UserID); // Configuring primary key
+                                              // Other configurations...
+            });
+            modelBuilder.Entity<UserProfile>(entity =>
+            {
+                entity.HasKey(e => e.ProfileID); // Configuring primary key
+                                                 // Other configurations...
+            });
+            modelBuilder.Entity<UserGroup>(entity =>
+            {
+                entity.HasKey(e => e.UGID); // Configuring primary key
+                                            // Other configurations...
+                entity.Property(e => e.UGID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<ItemGroup>(entity =>
+            {
+                entity.HasKey(e => e.IGID); // Configuring primary key
+                                            // Other configurations...
+                entity.Property(e => e.IGID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<Item>(entity =>
+            {
+                entity.HasKey(e => e.IID); // Configuring primary key
+                                           // Other configurations...
+                entity.Property(e => e.IID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+            modelBuilder.Entity<Par>(entity =>
+            {
+                entity.HasKey(e => e.parNo); // Configuring primary key
+                                             // Other configurations...
+            });
+            modelBuilder.Entity<RePAR>(entity =>
+            {
+                entity.HasKey(e => e.REPARNo); // Configuring primary key
+                                               // Other configurations...
+            });
+            modelBuilder.Entity<ParItem>(entity =>
+            {
+                entity.HasKey(e => e.PARINO); // Configuring primary key
+                                              // Other configurations...
+            });
+            modelBuilder.Entity<ICS>(entity =>
+            {
+                entity.HasKey(e => e.ICSNo); // Configuring primary key
+                                             // Other configurations...
+            });
+            modelBuilder.Entity<ICSItem>(entity =>
+            {
+                entity.HasKey(e => e.ICSItemNo); // Configuring primary key
+                                                 // Other configurations...
+            });
+            modelBuilder.Entity<ITR>(entity =>
+            {
+                entity.HasKey(e => e.ITRNo); // Configuring primary key
+                                             // Other configurations...
+            });
+            modelBuilder.Entity<PRS>(entity =>
+            {
+                entity.HasKey(e => e.PRSNo); // Configuring primary key
+                                             // Other configurations...
+            });
+            modelBuilder.Entity<RRSEP>(entity =>
+            {
+                entity.HasKey(e => e.RRSEPNo); // Configuring primary key
+                                               // Other configurations...
+            });
+            modelBuilder.Entity<Module>(entity =>
+            {
+                entity.HasKey(e => e.MID); // Configuring primary key
+                                           // Other configurations...
+            });
+            modelBuilder.Entity<Privilege>(entity =>
+            {
+                entity.HasKey(e => e.PID); // Configuring primary key
+                                           // Other configurations...
+            });
+
+            // Configure the view
+
+            modelBuilder.Entity<BranchesVw>().ToView("ListOfBranch");
+            modelBuilder.Entity<BranchesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<DepartmentsVw>().ToView("ListOfDeparment");
+            modelBuilder.Entity<DepartmentsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<SectionsVw>().ToView("ListOfSection");
+            modelBuilder.Entity<SectionsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<AccountID>().ToView("GetGenAccID");
+            modelBuilder.Entity<AccountID>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<UserAccountsVw>().ToView("ListOfUserAccount");
+            modelBuilder.Entity<UserAccountsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<UserProfileVw>().ToView("ListOfProfile");
+            modelBuilder.Entity<UserProfileVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ItemVw>().ToView("ListOfItem");
+            modelBuilder.Entity<ItemVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ParVw>().ToView("ListOfPar");
+            modelBuilder.Entity<ParVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<CencusVw>().ToView("Cencus");
+            modelBuilder.Entity<CencusVw>(entity =>
+            {
+                entity.HasNoKey();
+            }); 
+
+            modelBuilder.Entity<ActivityLogVw>().ToView("ListOfActivity");
+            modelBuilder.Entity<ActivityLogVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<RePARVw>().ToView("ListOfREPAR");
+            modelBuilder.Entity<RePARVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ICSVw>().ToView("ListOfICS");
+            modelBuilder.Entity<ICSVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+
+            modelBuilder.Entity<ICSItemVw>().ToView("ListOfPostedICSItems");
+            modelBuilder.Entity<ICSItemVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ITRVw>().ToView("ListOfITR");
+            modelBuilder.Entity<ITRVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<PRSVw>().ToView("ListOfPRS");
+            modelBuilder.Entity<PRSVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<RRSEPVw>().ToView("ListOfRRSEP");
+            modelBuilder.Entity<RRSEPVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+
+            modelBuilder.Entity<PrivilegeVw>().ToView("ListOfPrivilege");
+            modelBuilder.Entity<PrivilegeVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            //Offices by Module
+            modelBuilder.Entity<PAROfficesVw>().ToView("ListPAROffices");
+            modelBuilder.Entity<PAROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<REPAROfficesVw>().ToView("ListREPAROffices");
+            modelBuilder.Entity<REPAROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<PRSOfficesVw>().ToView("ListPRSOffices");
+            modelBuilder.Entity<PRSOfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ICSOfficesVw>().ToView("ListICSOffices");
+            modelBuilder.Entity<ICSOfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ITROfficesVw>().ToView("ListITROffices");
+            modelBuilder.Entity<ITROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<RRSEPOfficesVw>().ToView("ListRRSEPOffices");
+            modelBuilder.Entity<RRSEPOfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<PARItemsDetailsVw>().ToView("ListOfPARByOffice");
+            modelBuilder.Entity<PARItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<REPARItemsDetailsVw>().ToView("ListOfREPARByOffice");
+            modelBuilder.Entity<REPARItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<PRSItemsDetailsVw>().ToView("ListOfPRSByOffice");
+            modelBuilder.Entity<PRSItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ICSItemsDetailsVw>().ToView("ListOfICSByOffice");
+            modelBuilder.Entity<ICSItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<ITRItemsDetailsVw>().ToView("ListOfITRByOffice");
+            modelBuilder.Entity<ITRItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<RRSEPItemsDetailsVw>().ToView("ListOfRRSEPByOffice");
+            modelBuilder.Entity<RRSEPItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+
+            modelBuilder.Entity<Above50KOffices>().ToView("ListofAbove50KOffices");
+            modelBuilder.Entity<Above50KOffices>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<Below50KOffices>().ToView("ListofBelow50KOffices");
+            modelBuilder.Entity<Below50KOffices>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<SummaryItemsA50kDetailsVw>().ToView("ListOfAbove50KByOffice");
+            modelBuilder.Entity<SummaryItemsA50kDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<SummaryItemsB50kDetailsVw>().ToView("ListOfBelow50KByOffice");
+            modelBuilder.Entity<SummaryItemsB50kDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+
+
+            base.OnModelCreating(modelBuilder);
+
+        }
+
+
+    }
+}

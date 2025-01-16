@@ -1,0 +1,6 @@
+@DDNAEINV_HostAddress = http://localhost:5192
+
+GET {{DDNAEINV_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
