@@ -35,9 +35,26 @@ namespace DDNAEINV.Controllers
         public IActionResult PostedICSItem()
         {
 
-            var icsItems = dBContext.ListOfPostedICSItems.ToList();
+            var icsItems = dBContext.ICSItems
+                .Where(pi => dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
+                             dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
+                .ToList();
 
             return Ok(icsItems);
+        }
+
+        // localhost:port/api/ICSITEM/Active/Search
+        [HttpGet]
+        [Route("posted/Search")]
+        public IQueryable<ICSItem> SearchActiveICSItems(string key)
+        {
+            return dBContext.ICSItems
+                .Where(pi => (dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
+                             dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
+                          && pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
+            pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
+            pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) ||
+            pi.Date_Acquired.ToString().Contains(key));
         }
 
 

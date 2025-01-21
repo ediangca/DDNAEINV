@@ -53,7 +53,7 @@ namespace DDNAEINV.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "ICS is Invalid!" });
 
-            var icsExist = await dBContext.ICSs.FirstOrDefaultAsync(x => x.ICSNo == icsDetatils.Details.ICSNo);
+            var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo == icsDetatils.Details.ICSNo);
 
             if (icsExist != null)
                 return BadRequest(new { message = "ICS already exist!" });
@@ -76,7 +76,7 @@ namespace DDNAEINV.Controllers
                 };
 
                 // Save changes to the database
-                await dBContext.ICSs.AddAsync(ics);
+                await dBContext.ICSS.AddAsync(ics);
                 await dBContext.SaveChangesAsync();
 
                 await dBContext.ICSItems.AddRangeAsync(icsDetatils.icsItems);
@@ -115,7 +115,7 @@ namespace DDNAEINV.Controllers
         public async Task<IActionResult> Update(string icsNo, [FromBody] ICSDetails icsDetails)
         {
             // Find the ICS by ID
-            var ics = await dBContext.ICSs.FindAsync(icsNo);
+            var ics = await dBContext.ICSS.FindAsync(icsNo);
 
             if (ics == null)
                 return NotFound(new { message = "ICS not found." });
@@ -123,7 +123,7 @@ namespace DDNAEINV.Controllers
             try
             {
                 // Check if ICS with the same ICSNo exists
-                var icsExist = await dBContext.ICSs.FirstOrDefaultAsync(x => x.ICSNo != icsNo && x.ICSNo == icsDetails.Details.ICSNo);
+                var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo != icsNo && x.ICSNo == icsDetails.Details.ICSNo);
 
                 if (icsExist != null)
                     return BadRequest(new { message = "ICS already exists!" });
@@ -223,7 +223,7 @@ namespace DDNAEINV.Controllers
         public IActionResult Post(string id, [FromBody] bool postVal)
         {
             // Find the PAR by id
-            var par = dBContext.ICSs.Find(id);
+            var par = dBContext.ICSS.Find(id);
 
             if (par == null)
                 return NotFound(new { message = "ICS not found." });
@@ -257,20 +257,20 @@ namespace DDNAEINV.Controllers
         public async Task<IActionResult> Delete(string id)
         {
 
-            var ICSExist = await dBContext.ICSs.FirstOrDefaultAsync(x => x.ICSNo != id && x.postFlag == true);
+            var ICSExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo != id && x.postFlag == true);
 
             if (ICSExist != null)
                 return BadRequest(new { message = "ICS already posted!" });
 
             // Find the PAR by id
-            var ics = dBContext.ICSs.Find(id);
+            var ics = dBContext.ICSS.Find(id);
 
             if (ics == null)
                 return NotFound(new { message = "ICS not found." });
 
-            ics = await dBContext.ICSs.Where(x => x.ICSNo == id).FirstAsync();
+            ics = await dBContext.ICSS.Where(x => x.ICSNo == id).FirstAsync();
 
-            dBContext.ICSs.Remove(ics);
+            dBContext.ICSS.Remove(ics);
             dBContext.SaveChanges();
 
             // Fetch existing items by PAR No

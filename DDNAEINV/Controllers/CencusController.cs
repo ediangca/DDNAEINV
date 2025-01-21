@@ -34,5 +34,15 @@ namespace DDNAEINV.Controllers
 
             return Ok(cencus);
         }
+
+        [HttpGet]
+        [Route("TotalAbove50ItemsByOffice")]
+        public IActionResult TotalAbove50ItemsByOffice()
+        {
+
+            var totalItems = dBContext.TotalAbove50ItemsByOffice.OrderBy(x=> x.Office).ToList();
+
+            return Ok(totalItems);
+        }
     }
 }

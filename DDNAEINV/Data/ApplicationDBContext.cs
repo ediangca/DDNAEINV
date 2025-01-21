@@ -31,7 +31,7 @@ namespace DDNAEINV.Data
         public DbSet<Par> PARS { get; set; }
         public DbSet<ParItem> PARItems { get; set; }
         public DbSet<RePAR> REPARS { get; set; }
-        public DbSet<ICS> ICSs { get; set; }
+        public DbSet<ICS> ICSS { get; set; }
         public DbSet<ICSItem> ICSItems { get; set; }
         public DbSet<ITR> ITRS { get; set; }
         public DbSet<PRS> PRSS { get; set; }
@@ -74,6 +74,8 @@ namespace DDNAEINV.Data
         public DbSet<Above50KOffices> ListofAbove50KOffices { get; set; }
         public DbSet<Below50KOffices> ListofBelow50KOffices { get; set; }
 
+        public DbSet<TotalAbove50ItemsByOfficeVw> TotalAbove50ItemsByOffice { get; set; } //List of Above 50k Items By Office
+
         //Reports View
         public DbSet<PARItemsDetailsVw> ListOfPARByOffice { get; set; } //List of PAR Items Details
         public DbSet<REPARItemsDetailsVw> ListOfREPARByOffice { get; set; } //List of REPAR Items Details
@@ -89,6 +91,7 @@ namespace DDNAEINV.Data
         //Function
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             modelBuilder.Entity<Branch>(entity =>
             {
                 entity.HasKey(e => e.BranchID); // Configuring primary key
@@ -156,12 +159,14 @@ namespace DDNAEINV.Data
             modelBuilder.Entity<Par>(entity =>
             {
                 entity.HasKey(e => e.parNo); // Configuring primary key
-                                             // Other configurations...
+                entity.Property(e => e.parNo).ValueGeneratedNever(); // Prevent OUTPUT clause
             });
             modelBuilder.Entity<RePAR>(entity =>
             {
                 entity.HasKey(e => e.REPARNo); // Configuring primary key
-                                               // Other configurations...
+                entity.Property(e => e.REPARNo).ValueGeneratedNever(); // Prevent OUTPUT clause
+
+                // Other configurations...
             });
             modelBuilder.Entity<ParItem>(entity =>
             {
@@ -258,7 +263,13 @@ namespace DDNAEINV.Data
             modelBuilder.Entity<CencusVw>(entity =>
             {
                 entity.HasNoKey();
-            }); 
+            });
+
+            modelBuilder.Entity<TotalAbove50ItemsByOfficeVw>().ToView("TotalAbove50ItemsByOffice");
+            modelBuilder.Entity<TotalAbove50ItemsByOfficeVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
 
             modelBuilder.Entity<ActivityLogVw>().ToView("ListOfActivity");
             modelBuilder.Entity<ActivityLogVw>(entity =>

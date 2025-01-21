@@ -26,6 +26,33 @@ namespace DDNAEINV.Controllers
 
             return Ok(paritems);
         }
+        // localhost:port/api/PARITEM
+        [HttpGet]
+        [Route("posted")]
+        public IActionResult PostedPARItems()
+        {
+
+            var paritems = dBContext.PARItems
+                .Where(pi => dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) ||
+                             dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
+                .ToList();
+
+            return Ok(paritems);
+        }
+
+        // localhost:port/api/PARITEM/Active/Search
+        [HttpGet]
+        [Route("posted/Search")]
+        public IQueryable<ParItem> SearchActivePARItems(string key)
+        {
+            return dBContext.PARItems
+                .Where(pi => (dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) ||
+                             dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
+                          && pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
+            pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
+            pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) || pi.Date_Acquired.ToString().Contains(key));
+        }
+
 
         // localhost:port/api/PARITEM/SearchByPARNO/
         [HttpGet]
@@ -43,7 +70,7 @@ namespace DDNAEINV.Controllers
         [Route("Search")]
         public IQueryable<ParItem> Search(string key)
         {
-            return dBContext.PARItems.Where(x => 
+            return dBContext.PARItems.Where(x =>
             x.Brand.Contains(key) || x.Model.ToString().Contains(key) ||
             x.Description.Contains(key) || x.SerialNo.ToString().Contains(key) ||
             x.PropertyNo.ToString().Contains(key) || x.QRCode.ToString().Contains(key) || x.Date_Acquired.ToString().Contains(key));
@@ -167,7 +194,7 @@ namespace DDNAEINV.Controllers
 
             return Ok(items);
         }
-        
+
         // localhost:port/api/PARITEM/Update
         [HttpPut]
         [Route("UpdateByID")]
@@ -202,7 +229,8 @@ namespace DDNAEINV.Controllers
                     message = "Successfully Updated!"
                 });
 
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred while updating the data.", error = ex.Message });
             }

@@ -6,7 +6,7 @@ namespace DDNAEINV.Model.Views
     public class ITR
     {
         [Key]
-        public string ITRNo { get; set; } = string.Empty;
+        public string? ITRNo { get; set; } = string.Empty;
         public required string icsNo { get; set; }
         public required string ttype { get; set; }
         public required string otype { get; set; }
