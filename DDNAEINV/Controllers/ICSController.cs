@@ -257,16 +257,15 @@ namespace DDNAEINV.Controllers
         public async Task<IActionResult> Delete(string id)
         {
 
-            var ICSExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo != id && x.postFlag == true);
+            var ICSExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo == id && x.postFlag == true);
 
-            if (ICSExist != null)
-                return BadRequest(new { message = "ICS already posted!" });
-
+            if (ICSExist != null) { return BadRequest(new { message = "ICS already posted!" }); }
+                
             // Find the PAR by id
             var ics = dBContext.ICSS.Find(id);
 
-            if (ics == null)
-                return NotFound(new { message = "ICS not found." });
+            if (ics == null) { return NotFound(new { message = "ICS not found." }); }
+               
 
             ics = await dBContext.ICSS.Where(x => x.ICSNo == id).FirstAsync();
 

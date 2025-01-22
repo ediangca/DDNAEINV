@@ -194,17 +194,15 @@ namespace DDNAEINV.Controllers
         public async Task<IActionResult> Delete(string id)
         {
 
-            var PARExist = await dBContext.PARS.FirstOrDefaultAsync(x => x.parNo != id && x.postFlag == true);
+            var PARExist = await dBContext.PARS.FirstOrDefaultAsync(x => x.parNo == id && x.postFlag == true);
 
-            if (PARExist != null)
-                return BadRequest(new { message = "PAR already posted!" });
-
+            if (PARExist != null) { return BadRequest(new { message = "PAR already posted!" }); }
+                
             // Find the PAR by id
             var par = dBContext.PARS.Find(id);
 
-            if (par == null)
-                return NotFound(new { message = "PAR not found." });
-
+            if (par == null) { return NotFound(new { message = "PAR not found." }); }
+              
             par = await dBContext.PARS.Where(x => x.parNo == id).FirstAsync();
 
             dBContext.PARS.Remove(par);
