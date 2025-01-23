@@ -123,65 +123,97 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/Report/PAR/{office}
         [HttpGet]
         [Route("PAR")]
-        public IQueryable<PARItemsDetailsVw> ListOfPARByOffice(string office)
+        public IQueryable<PARItemsDetailsVw> ListOfPARByOffice(string? office)
         {
-            return dBContext.ListOfPARByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfPARByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfPARByOffice;
         }
 
         // localhost:port/api/Report/PTR/{office}
         [HttpGet]
         [Route("PTR")]
-        public IQueryable<REPARItemsDetailsVw> ListOfREPARByOffice(string office)
+        public IQueryable<REPARItemsDetailsVw> ListOfREPARByOffice(string? office)
         {
-            return dBContext.ListOfREPARByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfREPARByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfREPARByOffice;
         }
 
         // localhost:port/api/Report/PRS/{office}
         [HttpGet]
         [Route("PRS")]
-        public IQueryable<PRSItemsDetailsVw> ListOfPRSByOffice(string office)
+        public IQueryable<PRSItemsDetailsVw> ListOfPRSByOffice(string? office)
         {
-            return dBContext.ListOfPRSByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfPRSByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfPRSByOffice;
         }
 
 
         // localhost:port/api/Report/ICS/{office}
         [HttpGet]
         [Route("ICS")]
-        public IQueryable<ICSItemsDetailsVw> ListOfICSByOffice(string office)
+        public IQueryable<ICSItemsDetailsVw> ListOfICSByOffice(string? office)
         {
-            return dBContext.ListOfICSByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfICSByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfICSByOffice;
         }
 
         // localhost:port/api/Report/ITR/{office}
         [HttpGet]
         [Route("ITR")]
-        public IQueryable<ITRItemsDetailsVw> ListOfITRByOffice(string office)
+        public IQueryable<ITRItemsDetailsVw> ListOfITRByOffice(string? office)
         {
-            return dBContext.ListOfITRByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfITRByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfITRByOffice;
         }
 
         // localhost:port/api/Report/RRSEP/{office}
         [HttpGet]
         [Route("RRSEP")]
-        public IQueryable<RRSEPItemsDetailsVw> ListOfRRSEPByOffice(string office)
+        public IQueryable<RRSEPItemsDetailsVw> ListOfRRSEPByOffice(string? office)
         {
-            return dBContext.ListOfRRSEPByOffice.Where(x => x.ReceivedByOffice == office);
-        }   
+            if (office != null)
+            {
+                return dBContext.ListOfRRSEPByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfRRSEPByOffice;
+        }
 
         // localhost:port/api/Report/SOPA5/{office}
         [HttpGet]
         [Route("SOPA5")]
-        public IQueryable<SummaryItemsA50kDetailsVw> ListOfA50KItemsByOffice(string office)
+        public IQueryable<SummaryItemsA50kDetailsVw> ListOfA50KItemsByOffice(string? office)
         {
-            return dBContext.ListOfAbove50KByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfAbove50KByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfAbove50KByOffice;
         }
         // localhost:port/api/Report/SOPB5/{office}
         [HttpGet]
         [Route("SOPB5")]
-        public IQueryable<SummaryItemsB50kDetailsVw> ListOfB50KItemsByOffice(string office)
+        public IQueryable<SummaryItemsB50kDetailsVw> ListOfB50KItemsByOffice(string? office)
         {
-            return dBContext.ListOfBelow50KByOffice.Where(x => x.ReceivedByOffice == office);
+            if (office != null)
+            {
+                return dBContext.ListOfBelow50KByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfBelow50KByOffice;
         }
     }
 

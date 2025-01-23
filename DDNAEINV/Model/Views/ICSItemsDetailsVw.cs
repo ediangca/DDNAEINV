@@ -12,7 +12,7 @@
         public required string PropertyNo { get; set; }
         public required string QRCode { get; set; }
         public required string Unit { get; set; }
-        public required double Amount { get; set; }
+        public decimal? Amount { get; set; } = (decimal) 0.0;
         public string? Issued { get; set; } = String.Empty;
         public string? IssuedBy { get; set; } = String.Empty;
         public string? IssuedByBranch { get; set; } = String.Empty;
