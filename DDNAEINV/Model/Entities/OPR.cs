@@ -1,14 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DDNAEINV.Model.Entities
 {
-    public class Par
+    public class OPR
     {
         [Key]
-        public required string parNo { get; set; }
-        public required string lgu { get; set; }
-        public required string fund { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int oprNo { get; set; }
+        public required string itemSource { get; set; }
+        public required string ownership { get; set; }
         public required string receivedBy { get; set; }
         public required string issuedBy { get; set; }
         public bool? postFlag { get; set; } = false;
@@ -16,7 +17,5 @@ namespace DDNAEINV.Model.Entities
         public required string createdBy { get; set; }
         public required DateTime Date_Created { get; set; }
         public required DateTime Date_Updated { get; set; }
-
-
     }
 }

@@ -29,17 +29,22 @@ namespace DDNAEINV.Data
         public DbSet<ItemGroup> ItemGroups { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Par> PARS { get; set; }
-        public DbSet<ParItem> PARItems { get; set; }
-        public DbSet<RePAR> REPARS { get; set; }
         public DbSet<ICS> ICSS { get; set; }
-        public DbSet<ICSItem> ICSItems { get; set; }
+        public DbSet<OPR> OPRS { get; set; }
+        public DbSet<RePAR> REPARS { get; set; }
         public DbSet<ITR> ITRS { get; set; }
         public DbSet<PRS> PRSS { get; set; }
         public DbSet<RRSEP> RRSEPS { get; set; }
+        public DbSet<ParItem> PARItems { get; set; }
+        public DbSet<ICSItem> ICSItems { get; set; }
+        public DbSet<OPRItem> OPRItems { get; set; }
+
         public DbSet<Module> Modules { get; set; }
         public DbSet<Privilege> Privileges { get; set; }
 
         //Views
+
+
         public DbSet<BranchesVw> ListOfBranch { get; set; } //List of Branch Details
         public DbSet<DepartmentsVw> ListOfDeparment { get; set; } //List of Department Details
         public DbSet<SectionsVw> ListOfSection { get; set; } //List of Section Details
@@ -47,23 +52,28 @@ namespace DDNAEINV.Data
         public DbSet<UserAccountsVw> ListOfUserAccount { get; set; } //List of User Account Details
         public DbSet<UserProfileVw> ListOfProfile { get; set; } //List of User Profile Details
         public DbSet<ItemVw> ListOfItem { get; set; } //List of Item
+
+
         public DbSet<ParVw> ListOfPar { get; set; } //List of PAR
-        public DbSet<CencusVw> Cencus { get; set; } //List of Census
         public DbSet<RePARVw> ListOfREPar { get; set; } //List of REPAR
+        public DbSet<OPRVw> ListOfOPR { get; set; } //List of OPR
         public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
-        public DbSet<RRSEPVw> ListOfRRSEP { get; set; } //List of RRSEP
 
 
         public DbSet<ICSItemVw> ListOfPostedICSItems { get; set; } //List of Posted ICS Items
 
 
-        public DbSet<ITRVw> ListOfITR { get; set; } //List of ITR
         public DbSet<ICSVw> ListOfICS { get; set; } //List of ICS
+        public DbSet<ITRVw> ListOfITR { get; set; } //List of ITR
+        public DbSet<RRSEPVw> ListOfRRSEP { get; set; } //List of RRSEP
+
         public DbSet<PrivilegeVw> ListOfPrivilege { get; set; } //List of Privilege
 
         public DbSet<ActivityLogVw> ListOfActivity { get; set; } //List of Privilege
 
         //Offices Property Cencus
+        public DbSet<CencusVw> Cencus { get; set; } //List of Census
+
         //List of offices and census of PAR, PTR, PRS, ICS, ITR AND RRSEP by each Transaction
         public DbSet<PAROfficesVw> ListPAROffices { get; set; }
         public DbSet<REPAROfficesVw> ListREPAROffices { get; set; }
@@ -156,10 +166,16 @@ namespace DDNAEINV.Data
                 entity.Property(e => e.IID)
                     .ValueGeneratedOnAdd(); // Configuring auto-increment
             });
+            //PAR
             modelBuilder.Entity<Par>(entity =>
             {
                 entity.HasKey(e => e.parNo); // Configuring primary key
                 entity.Property(e => e.parNo).ValueGeneratedNever(); // Prevent OUTPUT clause
+            });
+            modelBuilder.Entity<ParItem>(entity =>
+            {
+                entity.HasKey(e => e.PARINO); // Configuring primary key
+                                              // Other configurations...
             });
             modelBuilder.Entity<RePAR>(entity =>
             {
@@ -168,11 +184,22 @@ namespace DDNAEINV.Data
 
                 // Other configurations...
             });
-            modelBuilder.Entity<ParItem>(entity =>
+            modelBuilder.Entity<PRS>(entity =>
             {
-                entity.HasKey(e => e.PARINO); // Configuring primary key
+                entity.HasKey(e => e.PRSNo); // Configuring primary key
+                                             // Other configurations...
+            });
+            //OPR
+            modelBuilder.Entity<OPR>(entity =>
+            {
+                entity.HasKey(e => e.oprNo); // Configuring primary key
+            });
+            modelBuilder.Entity<OPRItem>(entity =>
+            {
+                entity.HasKey(e => e.OPRINO); // Configuring primary key
                                               // Other configurations...
             });
+            //ICS
             modelBuilder.Entity<ICS>(entity =>
             {
                 entity.HasKey(e => e.ICSNo); // Configuring primary key
@@ -188,16 +215,12 @@ namespace DDNAEINV.Data
                 entity.HasKey(e => e.ITRNo); // Configuring primary key
                                              // Other configurations...
             });
-            modelBuilder.Entity<PRS>(entity =>
-            {
-                entity.HasKey(e => e.PRSNo); // Configuring primary key
-                                             // Other configurations...
-            });
             modelBuilder.Entity<RRSEP>(entity =>
             {
                 entity.HasKey(e => e.RRSEPNo); // Configuring primary key
                                                // Other configurations...
             });
+            //PREVILLEGES
             modelBuilder.Entity<Module>(entity =>
             {
                 entity.HasKey(e => e.MID); // Configuring primary key
@@ -209,8 +232,8 @@ namespace DDNAEINV.Data
                                            // Other configurations...
             });
 
-            // Configure the view
 
+            // ----------------- VIEWS -------------------
             modelBuilder.Entity<BranchesVw>().ToView("ListOfBranch");
             modelBuilder.Entity<BranchesVw>(entity =>
             {
@@ -255,6 +278,12 @@ namespace DDNAEINV.Data
 
             modelBuilder.Entity<ParVw>().ToView("ListOfPar");
             modelBuilder.Entity<ParVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<OPRVw>().ToView("ListOfOPR");
+            modelBuilder.Entity<OPRVw>(entity =>
             {
                 entity.HasNoKey();
             });
