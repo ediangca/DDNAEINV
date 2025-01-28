@@ -21,22 +21,22 @@ namespace DDNAEINV.Controllers
         public IActionResult List()
         {
 
-            var paritems = dBContext.OPRItems.ToList();
+            var opritems = dBContext.OPRItems.ToList();
 
-            return Ok(paritems);
+            return Ok(opritems);
         }
         // localhost:port/api/OPRITEM
         [HttpGet]
         [Route("posted")]
-        public IActionResult PostedPARItems()
+        public IActionResult PosteOPRItems()
         {
 
-            var paritems = dBContext.OPRItems
+            var opritems = dBContext.OPRItems
                 .Where(pi => dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true)) 
                 //|| dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
                 .ToList();
 
-            return Ok(paritems);
+            return Ok(opritems);
         }
 
         // localhost:port/api/OPRITEM/Active/Search
@@ -94,18 +94,18 @@ namespace DDNAEINV.Controllers
             x.PropertyNo.ToString().Equals(key) || x.QRCode.ToString().Equals(key)));
         }
 
-        // localhost:port/api/PARITEM/Create/
+        // localhost:port/api/OPRITEM/Create/
         [HttpPost]
         [Route("Create")]
         public async Task<IActionResult> Create([FromBody] List<OPRItem> details)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { message = "PARITEM is Invalid!" });
+                return BadRequest(new { message = "OPRITEM is Invalid!" });
 
             foreach (var item in details)
             {
-                var parExist = await dBContext.OPRItems.FirstOrDefaultAsync(x => x.oprNo == item.oprNo);
-                if (parExist != null)
+                var oprExist = await dBContext.OPRItems.FirstOrDefaultAsync(x => x.oprNo == item.oprNo);
+                if (oprExist != null)
                     return NotFound(new { message = $"OPR #000{item.oprNo} is not Found!" });
 
                 var oprItemExist = await dBContext.OPRItems.FirstOrDefaultAsync(x => x.PropertyNo == item.PropertyNo);
@@ -136,12 +136,12 @@ namespace DDNAEINV.Controllers
         }
 
 
-        // localhost:port/api/OPRITEM/PARNO/{id}
+        // localhost:port/api/OPRITEM/OPRNO/{id}
         [HttpGet("OPRNO/{oprNo}")]
         public async Task<IActionResult> RetrieveByOPRNO(int oprNo)
         {
 
-            if (oprNo != null)
+            if (oprNo != 0)
             {
                 var items = await dBContext.OPRItems
                                             .Where(x => x.oprNo == oprNo)
@@ -246,7 +246,7 @@ namespace DDNAEINV.Controllers
                 return BadRequest(new { message = "OPR No and updated items are required." });
             }
 
-            // Fetch existing items by PAR No
+            // Fetch existing items by OPR No
             var existingItems = await dBContext.OPRItems
                                                .Where(x => x.oprNo == oprNo)
                                                .ToListAsync();
@@ -278,8 +278,8 @@ namespace DDNAEINV.Controllers
                 else
                 {
 
-                    var parItemExist = await dBContext.OPRItems.FirstOrDefaultAsync(x => x.PropertyNo == updatedItem.PropertyNo);
-                    if (parItemExist != null)
+                    var oprItemExist = await dBContext.OPRItems.FirstOrDefaultAsync(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (oprItemExist != null)
                         return BadRequest(new { message = $"Property #{updatedItem.PropertyNo} already exists!" });
 
                     // If the item doesn't exist, add it to the list of items to add
@@ -333,33 +333,33 @@ namespace DDNAEINV.Controllers
 
         [HttpPut]
         [Route("UpdateExisting")]
-        public async Task<IActionResult> UpdateExisting(string parNo, [FromBody] List<ParItemDto> updatedItems)
+        public async Task<IActionResult> UpdateExisting(int oprNo, [FromBody] List<OPRItemDto> updatedItems)
         {
 
             //Debug.Write("LIST OF OPRITEM" + updatedItems);
 
-            if (string.IsNullOrEmpty(parNo) || updatedItems == null || updatedItems.Count == 0)
+            if (oprNo == 0 || updatedItems == null || updatedItems.Count == 0)
             {
-                return BadRequest(new { message = "PAR No and updated items are required." });
+                return BadRequest(new { message = "OPR No and updated items are required." });
             }
 
-            // Fetch existing items by PAR No
-            var existingItems = await dBContext.PARItems
-                                               .Where(x => x.PARNo == parNo)
+            // Fetch existing items by OPR No
+            var existingItems = await dBContext.OPRItems
+                                               .Where(x => x.oprNo == oprNo)
                                                .ToListAsync();
 
             // Delete existing items
             if (existingItems.Count > 0)
             {
-                dBContext.PARItems.RemoveRange(existingItems);
+                dBContext.OPRItems.RemoveRange(existingItems);
             }
 
             // Add new items
             foreach (var newItem in updatedItems)
             {
-                var newParItems = new ParItem
+                var newOPRItems = new OPRItem
                 {
-                    PARNo = newItem.PARNo,
+                    oprNo = newItem.oprNo,
                     IID = newItem.IID,
                     Brand = newItem.Brand,
                     Model = newItem.Model,
@@ -372,7 +372,7 @@ namespace DDNAEINV.Controllers
                     Date_Acquired = newItem.Date_Acquired,
                 };
 
-                Debug.WriteLine("LIST OF PARITEM : " + newItem.PARNo + ", " +
+                Debug.WriteLine("LIST OF OPRITEM : " + newItem.oprNo + ", " +
                     newItem.IID + ", " +
                     newItem.Brand + ", " +
                     newItem.Model + ", " +
@@ -384,7 +384,7 @@ namespace DDNAEINV.Controllers
                     newItem.Amount + ", " +
                     newItem.Date_Acquired);
 
-                await dBContext.PARItems.AddAsync(newParItems);
+                await dBContext.OPRItems.AddAsync(newOPRItems);
             }
 
             try
@@ -405,21 +405,21 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/OPRITEM/Delete
         [HttpDelete]
         [Route("Delete")]
-        public async Task<IActionResult> Delete(string parNo)
+        public async Task<IActionResult> Delete(int oprNo)
         {
-            if (string.IsNullOrEmpty(parNo))
+            if (oprNo == 0)
             {
-                return BadRequest(new { message = "PAR No is required." });
+                return BadRequest(new { message = "OPR No is required." });
             }
 
-            var itemsToDelete = await dBContext.PARItems.Where(x => x.PARNo == parNo).ToListAsync();
+            var itemsToDelete = await dBContext.OPRItems.Where(x => x.oprNo == oprNo).ToListAsync();
 
             if (itemsToDelete == null || itemsToDelete.Count == 0)
             {
-                return NotFound(new { message = "No items found for the given PAR No." });
+                return NotFound(new { message = "No items found for the given OPR No." });
             }
 
-            dBContext.PARItems.RemoveRange(itemsToDelete);
+            dBContext.OPRItems.RemoveRange(itemsToDelete);
 
             try
             {
