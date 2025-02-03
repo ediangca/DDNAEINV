@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using DDNAEINV.Model.Details;
+﻿using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +32,7 @@ namespace DDNAEINV.Data
         public DbSet<OPR> OPRS { get; set; }
         public DbSet<RePAR> REPARS { get; set; }
         public DbSet<ITR> ITRS { get; set; }
+        public DbSet<OPTR> OPTRS { get; set; }
         public DbSet<PRS> PRSS { get; set; }
         public DbSet<RRSEP> RRSEPS { get; set; }
         public DbSet<ParItem> PARItems { get; set; }
@@ -57,6 +57,7 @@ namespace DDNAEINV.Data
         public DbSet<ParVw> ListOfPar { get; set; } //List of PAR
         public DbSet<RePARVw> ListOfREPar { get; set; } //List of REPAR
         public DbSet<OPRVw> ListOfOPR { get; set; } //List of OPR
+        public DbSet<OPTRVw> ListOfOPTR { get; set; } //List of REPAR
         public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
 
 
@@ -184,6 +185,13 @@ namespace DDNAEINV.Data
 
                 // Other configurations...
             });
+
+            //OPTR
+            modelBuilder.Entity<OPTR>(entity =>
+            {
+                entity.HasKey(e => e.OPTRNo); // Configuring primary key
+            });
+            //PRS
             modelBuilder.Entity<PRS>(entity =>
             {
                 entity.HasKey(e => e.PRSNo); // Configuring primary key
@@ -308,6 +316,12 @@ namespace DDNAEINV.Data
 
             modelBuilder.Entity<RePARVw>().ToView("ListOfREPAR");
             modelBuilder.Entity<RePARVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<OPTRVw>().ToView("ListOfOPTR");
+            modelBuilder.Entity<OPTRVw>(entity =>
             {
                 entity.HasNoKey();
             });

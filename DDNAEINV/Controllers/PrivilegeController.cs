@@ -1,16 +1,7 @@
 ﻿using DDNAEINV.Data;
-using DDNAEINV.Helper;
-using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
-using DDNAEINV.Model.Views;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Data;
-using System.Data.Entity;
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace DDNAEINV.Controllers

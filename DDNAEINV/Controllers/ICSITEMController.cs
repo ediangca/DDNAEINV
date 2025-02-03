@@ -1,11 +1,9 @@
 ﻿using DDNAEINV.Data;
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
-using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-using System.Drawing;
 
 namespace DDNAEINV.Controllers
 {

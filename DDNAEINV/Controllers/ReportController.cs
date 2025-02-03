@@ -2,8 +2,9 @@
 using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 using Microsoft.Data.SqlClient;
+using System.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DDNAEINV.Controllers
 {

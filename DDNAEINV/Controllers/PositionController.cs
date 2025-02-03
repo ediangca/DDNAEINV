@@ -1,10 +1,8 @@
 ﻿using DDNAEINV.Data;
-using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using System.Web.WebPages;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DDNAEINV.Controllers
 {

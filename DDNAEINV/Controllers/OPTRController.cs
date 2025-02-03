@@ -11,46 +11,46 @@ namespace DDNAEINV.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class REPARController : ControllerBase
+    public class OPTRController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
 
-        public REPARController(ApplicationDBContext dBContext)
+        public OPTRController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
 
         }
-        // localhost:port/api/REPAR
+        // localhost:port/api/OPTR
         [HttpGet]
         public IActionResult List()
         {
 
-            var repar = dBContext.ListOfREPar.ToList()
+            var optr = dBContext.ListOfOPTR.ToList()
                    .OrderByDescending(x => x.Date_Created) 
                    .ToList();
 
-            return Ok(repar);
+            return Ok(optr);
         }
-        // localhost:port/api/REPAR/Search/
+        // localhost:port/api/OPTR/Search/
         [HttpGet]
         [Route("Search")]
-        public IQueryable<RePARVw> Search(string key)
+        public IQueryable<OPTRVw> Search(string key)
         {
-            return dBContext.ListOfREPar.Where(x => x.parNo.Contains(key) ||
-            x.lgu.Contains(key) || x.fund.ToString().Contains(key) ||
+            return dBContext.ListOfOPTR.Where(x => x.OPTRNo.Contains(key) ||
+            x.itemSource.Contains(key) || x.ownership.ToString().Contains(key) ||
             x.received.ToString().Contains(key) || x.issued.ToString().Contains(key) ||
             x.created.ToString().Contains(key) || x.Date_Created.ToString().Contains(key) || x.Date_Updated.ToString().Contains(key))
                 .OrderByDescending(x => x.Date_Created);
         }
         // GET: api/items/generateID
-        [HttpGet("generateID/{parNo}")]
-        public async Task<ActionResult<string>> GenerateREPARID(string parNo)
+        [HttpGet("generateID/{oprNo}")]
+        public async Task<ActionResult<string>> GenerateOPTRID(string oprNo)
         {
             // SQL query to execute the function
-            var sqlQuery = "SELECT dbo.GenerateREPARID(@parNo) AS GenREPARID";
+            var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
 
             // SQL parameter for the type
-            var param = new SqlParameter("@parNo", parNo);
+            var param = new SqlParameter("@oprNo", oprNo);
 
             // Execute the query and get the result
             string result;
@@ -75,31 +75,31 @@ namespace DDNAEINV.Controllers
             else
             {
                 return BadRequest(
-                    new { message = "REPAR No could not be generated.!" });
+                    new { message = "OPTR No could not be generated.!" });
             }
         }
 
-        // localhost:port/api/REPAR/Create/
+        // localhost:port/api/OPTR/Create/
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> Create([FromBody] CreateReparRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateOPTRRequest request)
         {
             var details = request.Details;
             var updatedItems = request.UpdatedItems;
 
             if (!ModelState.IsValid)
-                return BadRequest(new { message = "REPAR is Invalid!" });
+                return BadRequest(new { message = "OPTR is Invalid!" });
 
 
             try
             {
-                var sqlQuery = "SELECT dbo.GenerateREPARID(@parNo) AS GenREPARID";
+                var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
 
                 // SQL parameter for the type
-                var param = new SqlParameter("@parNo", details.parNo);
+                var param = new SqlParameter("@oprNo", details.oprNo);
 
                 // Execute the query and get the result
-                string REPARNo;
+                string OPTRNo;
                 using (var command = dBContext.Database.GetDbConnection().CreateCommand())
                 {
                     command.CommandText = sqlQuery;
@@ -108,15 +108,15 @@ namespace DDNAEINV.Controllers
                     await dBContext.Database.OpenConnectionAsync();
 
                     var scalarResult = await command.ExecuteScalarAsync();
-                    REPARNo = scalarResult + "".ToString();
+                    OPTRNo = scalarResult + "".ToString();
                 }
 
-                if (!string.IsNullOrEmpty(REPARNo))
+                if (!string.IsNullOrEmpty(OPTRNo))
                 {
-                    var repar = new RePAR
+                    var optr = new OPTR
                     {
-                        REPARNo = REPARNo,
-                        parNo = details.parNo,
+                        OPTRNo = OPTRNo,
+                        oprNo = details.oprNo,
                         ttype = details.ttype,
                         otype = details.otype,
                         reason = details.reason,
@@ -131,18 +131,18 @@ namespace DDNAEINV.Controllers
                     };
 
                     // Save changes to the database
-                    await dBContext.REPARS.AddAsync(repar);
+                    await dBContext.OPTRS.AddAsync(optr);
                     await dBContext.SaveChangesAsync();
 
-                    //return Ok(repar);
+                    //return Ok(optr);
                     //return Ok(new
                     //{
                     //    message = "Successfully Saved!"
                     //});
 
-                    // Fetch existing items by PAR No
-                    var existingItems = await dBContext.PARItems
-                                                       .Where(x => x.PARNo == details.parNo)
+                    // Fetch existing items by OPR No
+                    var existingItems = await dBContext.OPRItems
+                                                       .Where(x => x.oprNo == details.oprNo)
                                                        .ToListAsync();
 
 
@@ -155,8 +155,8 @@ namespace DDNAEINV.Controllers
                         {
 
                             // Update the existing item's fields with the updated data
-                            existingItem.reparFlag = true;
-                            existingItem.REPARNo = REPARNo;
+                            existingItem.optrFlag = true;
+                            existingItem.OPTRNo = OPTRNo;
                             // Update other fields as necessary
                         }
                     }
@@ -165,14 +165,14 @@ namespace DDNAEINV.Controllers
                     return Ok(new
                     {
                         message = "Successfully Saved!",
-                        details = repar,
+                        details = optr,
                         items = existingItems
                     });
                 }
                 else
                 {
                     return BadRequest(
-                        new { message = "REPAR No could not be generated.!" });
+                        new { message = "OPTR No could not be generated.!" });
                 }
 
 
@@ -184,79 +184,79 @@ namespace DDNAEINV.Controllers
             }
         }
 
-        // localhost:port/api/PAR/{id}
+        // localhost:port/api/OPR/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> Retrieve(string id)
         {
-            // Find the REPAR by id asynchronously
-            var repar = await dBContext.ListOfREPar
-                                       .Where(x => x.REPARNo == id)
+            // Find the OPTR by id asynchronously
+            var optr = await dBContext.ListOfOPTR
+                                       .Where(x => x.OPTRNo == id)
                                        .FirstOrDefaultAsync();
 
-            if (repar == null)
-                return NotFound(new { message = "REPAR not Found!" });
+            if (optr == null)
+                return NotFound(new { message = "OPTR not Found!" });
 
-            // Find the REPAR Item by id asynchronously
-            var reparItem = await dBContext.PARItems
-                                           .Where(x => x.REPARNo == id)
+            // Find the OPTR Item by id asynchronously
+            var optrItem = await dBContext.OPTRS
+                                           .Where(x => x.OPTRNo == id)
                                            .ToListAsync();
 
-            if (reparItem == null || !reparItem.Any())
-                return NotFound(new { message = "REPAR items not Found!" });
+            if (optrItem == null || !optrItem.Any())
+                return NotFound(new { message = "OPTR items not Found!" });
 
             return Ok(new
             {
-                details = repar,
-                parItems = reparItem,
+                details = optr,
+                parItems = optrItem,
             });
         }
 
-        // localhost:port/api/REPAR/Update/
+        // localhost:port/api/OPTR/Update/
         [HttpPut]
         [Route("Update")]
-        public async Task<IActionResult> Update(string id, [FromBody] CreateReparRequest request)
+        public async Task<IActionResult> Update(string id, [FromBody] CreateOPTRRequest request)
         {
-            // Find the PAR by id
-            var repar = await dBContext.REPARS.FindAsync(id);
+            // Find the OPR by id
+            var optr = await dBContext.OPTRS.FindAsync(id);
 
-            if (repar == null)
-                return NotFound(new { message = "REPAR not found." });
+            if (optr == null)
+                return NotFound(new { message = "OPTR not found." });
 
-            RePARDto details = request.Details;
+            OPTRDto details = request.Details;
 
             try
             {
 
-                // Update the repar properties
-                repar.parNo = details.parNo;
-                repar.ttype = details.ttype;
-                repar.otype = details.otype;
-                repar.reason = details.reason;
-                repar.receivedBy = details.receivedBy;
-                repar.issuedBy = details.issuedBy;
-                repar.approvedBy = details.approvedBy;
-                repar.createdBy = details.createdBy;
-                repar.Date_Updated = DateTime.Now;
+                // Update the optr properties
+                optr.oprNo = details.oprNo;
+                optr.ttype = details.ttype;
+                optr.otype = details.otype;
+                optr.reason = details.reason;
+                optr.receivedBy = details.receivedBy;
+                optr.issuedBy = details.issuedBy;
+                optr.approvedBy = details.approvedBy;
+                optr.createdBy = details.createdBy;
+                optr.Date_Updated = DateTime.Now;
 
-                // Save REPAR changes
+                // Save OPTR changes
                 await dBContext.SaveChangesAsync();
 
-                // Fetch existing REPAR items by REPAR No
-                var reparItems = await dBContext.PARItems.Where(x => x.REPARNo == id).ToListAsync();
+                // Fetch existing OPTR items by OPTR No
+                var optrItems = await dBContext.OPRItems.Where(x => x.OPTRNo == id).ToListAsync();
 
-                // Nullify REPARNo and update reparFlag for old items
-                foreach (var reparItem in reparItems)
+                // Nullify OPTRNo and update optrFlag for old items
+                foreach (var optrItem in optrItems)
                 {
-                    // Update the repar properties
-                    reparItem.REPARNo = null;
-                    reparItem.reparFlag = false;
+                    // Update the optr properties
+                    optrItem.OPTRNo = null;
+                    optrItem.optrFlag = false;
                 }
 
 
-                // Fetch existing items by PAR No
-                var existingItems = await dBContext.PARItems.ToListAsync();
+                // Fetch existing items by OPR No
+                var existingItems = await dBContext.OPRItems.ToListAsync();
 
-                // Update existing items or prepare to add new ones
+                // Update existing items or poptre to add new ones
                 foreach (var updatedItem in request.UpdatedItems)
                 {
                     // Find if the updated item exists in the existing items
@@ -265,8 +265,8 @@ namespace DDNAEINV.Controllers
                     if (existingItem != null)
                     {
                         // Update the existing item's fields with the updated data
-                        existingItem.reparFlag = true;
-                        existingItem.REPARNo = id;
+                        existingItem.optrFlag = true;
+                        existingItem.OPTRNo = id;
                         // Update other fields as necessary from updatedItem
                         existingItem.Brand = updatedItem.Brand;
                         existingItem.Model = updatedItem.Model;
@@ -292,22 +292,22 @@ namespace DDNAEINV.Controllers
         }
 
 
-        // localhost:port/api/REPAR/Update/
+        // localhost:port/api/OPTR/Update/
         [HttpPut]
         [Route("Post")]
         public IActionResult Post(string id, [FromBody] bool postVal)
         {
-            // Find the PAR by id
-            var repar = dBContext.REPARS.Find(id);
+            // Find the OPR by id
+            var optr = dBContext.OPTRS.Find(id);
 
-            if (repar == null)
-                return NotFound(new { message = "REPAR not found." });
+            if (optr == null)
+                return NotFound(new { message = "OPTR not found." });
 
             try
             {
 
                 // Update the property postFlag
-                repar.postFlag = postVal;
+                optr.postFlag = postVal;
 
                 // Save changes to the database
                 dBContext.SaveChanges();
@@ -315,7 +315,7 @@ namespace DDNAEINV.Controllers
                 //return Ok(par);
                 return Ok(new
                 {
-                    message = "REPAR # " + id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
+                    message = "OPTR # " + id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
                 });
             }
             catch (Exception ex)
@@ -330,36 +330,36 @@ namespace DDNAEINV.Controllers
         [Route("Delete")]
         public async Task<IActionResult> Delete(string id)
         {
-            // Check if the REPAR is already posted
-            var PARExist = await dBContext.REPARS.FirstOrDefaultAsync(x => x.REPARNo == id && x.postFlag == true);
+            // Check if the OPTR is already posted
+            var OPRExist = await dBContext.OPTRS.FirstOrDefaultAsync(x => x.OPTRNo == id && x.postFlag == true);
 
-            if (PARExist != null)
-                return BadRequest(new { message = "REPAR already posted!" });
+            if (OPRExist != null)
+                return BadRequest(new { message = "OPTR already posted!" });
 
-            // Find the REPAR by id
-            var repar = await dBContext.REPARS.FirstOrDefaultAsync(x => x.REPARNo == id);
+            // Find the OPTR by id
+            var optr = await dBContext.OPTRS.FirstOrDefaultAsync(x => x.OPTRNo == id);
 
-            if (repar == null)
-                return NotFound(new { message = "REPAR not found." });
+            if (optr == null)
+                return NotFound(new { message = "OPTR not found." });
 
-            // Remove the REPAR
-            dBContext.REPARS.Remove(repar);
+            // Remove the OPTR
+            dBContext.OPTRS.Remove(optr);
             await dBContext.SaveChangesAsync();  // Ensure save is async
 
-            // Fetch existing PAR items by REPAR No
-            var reparItems = await dBContext.PARItems
-                                               .Where(x => x.REPARNo == id)
+            // Fetch existing OPR items by OPTR No
+            var optrItems = await dBContext.OPRItems
+                                               .Where(x => x.OPTRNo == id)
                                                .ToListAsync();
 
-            // Nullify REPARNo and update reparFlag
-            foreach (var reparItem in reparItems)
+            // Nullify OPTRNo and update optrFlag
+            foreach (var optrItem in optrItems)
             {
-                reparItem.REPARNo = null;
-                reparItem.reparFlag = false;
+                optrItem.OPTRNo = null;
+                optrItem.optrFlag = false;
             }
 
             // Save changes if any items were updated
-            if (reparItems.Count > 0)
+            if (optrItems.Count > 0)
             {
                 await dBContext.SaveChangesAsync();  // Use async save
             }
@@ -373,8 +373,8 @@ namespace DDNAEINV.Controllers
     }
 }
 
-public class CreateReparRequest
+public class CreateOPTRRequest
 {
-    public RePARDto Details { get; set; }
-    public List<ParItemDto> UpdatedItems { get; set; }
+    public OPTRDto Details { get; set; }
+    public List<OPRItemDto> UpdatedItems { get; set; }
 }

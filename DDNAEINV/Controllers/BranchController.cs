@@ -1,11 +1,8 @@
 ﻿using DDNAEINV.Data;
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Linq;
 
 namespace DDNAEINV.Controllers
 {
@@ -80,7 +77,6 @@ namespace DDNAEINV.Controllers
                     Date_Updated = DateTime.Now
 
                 };
-                Debug.WriteLine("Branch: " + branch.ToString());
                 // Save changes to the database
                 await dBContext.Branches.AddAsync(branch);
                 await dBContext.SaveChangesAsync();

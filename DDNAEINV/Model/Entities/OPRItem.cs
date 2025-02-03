@@ -19,6 +19,10 @@ namespace DDNAEINV.Model.Entities
         public required string QRCode { get; set; }
         public required string Unit { get; set; }
         public required double Amount { get; set; }
+        public bool? optrFlag { get; set; } = false;
+        public string? OPTRNo { get; set; } = string.Empty;
+        public bool? oprrFlag { get; set; } = false;
+        public string? OPRRNo { get; set; } = string.Empty;
 
         [BindProperty, DataType(DataType.Date)]
         public DateTime? Date_Acquired { get; set; } = DateTime.Now;

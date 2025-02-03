@@ -1,8 +1,6 @@
 ﻿using DDNAEINV.Data;
 using DDNAEINV.Helper;
-using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

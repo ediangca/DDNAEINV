@@ -2,10 +2,7 @@
 using DDNAEINV.Helper;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Data.Entity;
 using System.Diagnostics;
 
 namespace DDNAEINV.Controllers

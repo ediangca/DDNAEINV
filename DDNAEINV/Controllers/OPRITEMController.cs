@@ -1,9 +1,7 @@
 ﻿using DDNAEINV.Data;
-using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -371,18 +369,6 @@ namespace DDNAEINV.Controllers
                     Amount = newItem.Amount,
                     Date_Acquired = newItem.Date_Acquired,
                 };
-
-                Debug.WriteLine("LIST OF OPRITEM : " + newItem.oprNo + ", " +
-                    newItem.IID + ", " +
-                    newItem.Brand + ", " +
-                    newItem.Model + ", " +
-                    newItem.Description + ", " +
-                    newItem.SerialNo + ", " +
-                    newItem.PropertyNo + ", " +
-                    newItem.QRCode + ", " +
-                    newItem.Unit + ", " +
-                    newItem.Amount + ", " +
-                    newItem.Date_Acquired);
 
                 await dBContext.OPRItems.AddAsync(newOPRItems);
             }
