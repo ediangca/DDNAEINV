@@ -197,7 +197,7 @@ namespace DDNAEINV.Controllers
                 return NotFound(new { message = "OPTR not Found!" });
 
             // Find the OPTR Item by id asynchronously
-            var optrItem = await dBContext.OPTRS
+            var optrItem = await dBContext.OPRItems
                                            .Where(x => x.OPTRNo == id)
                                            .ToListAsync();
 
