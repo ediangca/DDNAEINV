@@ -38,6 +38,7 @@ namespace DDNAEINV.Data
         public DbSet<ParItem> PARItems { get; set; }
         public DbSet<ICSItem> ICSItems { get; set; }
         public DbSet<OPRItem> OPRItems { get; set; }
+        public DbSet<PropertyCard> PropertyCards { get; set; }
 
         public DbSet<Module> Modules { get; set; }
         public DbSet<Privilege> Privileges { get; set; }
@@ -228,6 +229,14 @@ namespace DDNAEINV.Data
                 entity.HasKey(e => e.RRSEPNo); // Configuring primary key
                                                // Other configurations...
             });
+            //PropertyCards
+            modelBuilder.Entity<PropertyCard>(entity =>
+            {
+                entity.HasKey(e => e.PCNo); // Configuring primary key
+                                           // Other configurations...
+                entity.Property(e => e.PCNo)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
             //PREVILLEGES
             modelBuilder.Entity<Module>(entity =>
             {
@@ -237,6 +246,11 @@ namespace DDNAEINV.Data
             modelBuilder.Entity<Privilege>(entity =>
             {
                 entity.HasKey(e => e.PID); // Configuring primary key
+                                           // Other configurations...
+            });
+            modelBuilder.Entity<PropertyCard>(entity =>
+            {
+                entity.HasKey(e => e.PCNo); // Configuring primary key
                                            // Other configurations...
             });
 

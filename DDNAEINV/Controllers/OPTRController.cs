@@ -14,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class OPTRController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public OPTRController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/OPTR
@@ -26,7 +28,7 @@ namespace DDNAEINV.Controllers
         {
 
             var optr = dBContext.ListOfOPTR.ToList()
-                   .OrderByDescending(x => x.Date_Created) 
+                   .OrderByDescending(x => x.Date_Created)
                    .ToList();
 
             return Ok(optr);
@@ -96,7 +98,8 @@ namespace DDNAEINV.Controllers
                 var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
 
                 // SQL parameter for the type
-                var param = new SqlParameter("@oprNo", details.oprNo);
+                //var param = new SqlParameter("@oprNo", details.oprNo+"");
+                var param = new SqlParameter("@oprNo", (details.oprNo + "").ToString());
 
                 // Execute the query and get the result
                 string OPTRNo;
@@ -156,6 +159,112 @@ namespace DDNAEINV.Controllers
 
                             // Update the existing item's fields with the updated data
                             existingItem.optrFlag = true;
+                            existingItem.OPTRNo = OPTRNo;
+                            // Update other fields as necessary
+                        }
+                    }
+
+                    await dBContext.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        message = "Successfully Saved!",
+                        details = optr,
+                        items = existingItems
+                    });
+                }
+                else
+                {
+                    return BadRequest(
+                        new { message = "OPTR No could not be generated.!" });
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
+            }
+        }
+
+        // localhost:port/api/OPTR/Create/
+        [HttpPost]
+        [Route("RECreate")]
+        public async Task<IActionResult> RECreate([FromBody] CreateOPTRRequest request)
+        {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "OPTR is Invalid!" });
+
+
+            try
+            {
+                var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
+
+                // SQL parameter for the type
+                //var param = new SqlParameter("@oprNo", details.oprNo+"");
+                var param = new SqlParameter("@oprNo", (details.oprNo + "").ToString());
+
+                // Execute the query and get the result
+                string OPTRNo;
+                using (var command = dBContext.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = sqlQuery;
+                    command.Parameters.Add(param);
+
+                    await dBContext.Database.OpenConnectionAsync();
+
+                    var scalarResult = await command.ExecuteScalarAsync();
+                    OPTRNo = scalarResult + "".ToString();
+                }
+
+                if (!string.IsNullOrEmpty(OPTRNo))
+                {
+                    var optr = new OPTR
+                    {
+                        OPTRNo = OPTRNo,
+                        oprNo = details.oprNo,
+                        ttype = details.ttype,
+                        otype = details.otype,
+                        reason = details.reason,
+                        receivedBy = details.receivedBy,
+                        issuedBy = details.issuedBy,
+                        approvedBy = details.approvedBy,
+                        postFlag = details.postFlag,
+                        voidFlag = details.voidFlag,
+                        createdBy = details.createdBy,
+                        Date_Created = DateTime.Now,
+                        Date_Updated = DateTime.Now
+                    };
+
+                    // Save changes to the database
+                    await dBContext.OPTRS.AddAsync(optr);
+                    await dBContext.SaveChangesAsync();
+
+                    //return Ok(optr);
+                    //return Ok(new
+                    //{
+                    //    message = "Successfully Saved!"
+                    //});
+
+                    // Fetch existing items by OPR No
+                    var existingItems = await dBContext.OPRItems
+                                                       .Where(x => x.OPTRNo == details.OPTRNo)
+                                                       .ToListAsync();
+
+
+                    foreach (var updatedItem in updatedItems)
+                    {
+                        // Find if the updated item exists in the existing items
+                        var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+
+                        if (existingItem != null)
+                        {
+
+                            // Update the existing item's fields with the updated data
+                            //existingItem.optrFlag = true;
                             existingItem.OPTRNo = OPTRNo;
                             // Update other fields as necessary
                         }
@@ -315,7 +424,7 @@ namespace DDNAEINV.Controllers
                 //return Ok(par);
                 return Ok(new
                 {
-                    message = "OPTR # " + id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
+                    message = "OPTR # 000" + id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
                 });
             }
             catch (Exception ex)
@@ -325,7 +434,7 @@ namespace DDNAEINV.Controllers
             }
         }
 
-
+        /**
         [HttpDelete]
         [Route("Delete")]
         public async Task<IActionResult> Delete(string id)
@@ -364,12 +473,186 @@ namespace DDNAEINV.Controllers
                 await dBContext.SaveChangesAsync();  // Use async save
             }
 
+            var propertyCards = await dBContext.PropertyCards
+                                               .Where(x => x.Ref == "OPTR" && x.RefNo == id)
+                                               .ToListAsync();
+
+            if (propertyCards.Count > 0)
+            {
+                dBContext.RemoveRange(propertyCards);
+            }
+
             return Ok(new
             {
                 message = "Successfully Removed"
             });
         }
+        */
+        
+        [HttpDelete]
+        [Route("Delete")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            // Check if the OPTR is already posted
+            var OPRExist = await dBContext.OPTRS.FirstOrDefaultAsync(x => x.OPTRNo == id && x.postFlag == true);
+            if (OPRExist != null)
+                return BadRequest(new { message = "OPTR already posted!" });
 
+            // Find the OPTR by id
+            var optr = await dBContext.OPTRS.FindAsync(id);
+            if (optr == null)
+                return NotFound(new { message = "OPTR not found." });
+
+            // Fetch existing OPR items by OPTR No
+            var optrItems = await dBContext.OPRItems.Where(x => x.OPTRNo == id).ToListAsync();
+
+            // Update related OPR items (nullify OPTRNo and reset optrFlag)
+            foreach (var optrItem in optrItems)
+            {
+                optrItem.OPTRNo = null;
+                optrItem.optrFlag = false;
+            }
+
+            // Remove related property cards
+            //var propertyCards = await dBContext.PropertyCards.Where(x => x.Ref == "OPTR" && x.RefNo == id).ToListAsync();
+            //if (propertyCards.Any())
+            //{
+            //    dBContext.PropertyCards.RemoveRange(propertyCards);
+            //}
+
+            // Save changes for updated OPR items and removed property cards
+            await dBContext.SaveChangesAsync();
+
+            // Now, remove the OPTR record
+            dBContext.OPTRS.Remove(optr);
+            await dBContext.SaveChangesAsync();
+
+            return Ok(new { message = "Successfully Removed" });
+        }
+
+
+        // localhost:port/api/OPTR/Transfer
+        [HttpPost]
+        [Route("Transfer")]
+        public async Task<IActionResult> Transfer([FromBody] CreateOPTRRequest request)
+        {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "OPTR is Invalid!" });
+
+
+            try
+            {
+                var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
+
+                // SQL parameter for the type
+                var param = new SqlParameter("@oprNo", (details.oprNo+"").ToString());
+
+                // Execute the query and get the result
+                string OPTRNo;
+                using (var command = dBContext.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = sqlQuery;
+                    command.Parameters.Add(param);
+
+                    await dBContext.Database.OpenConnectionAsync();
+
+                    var scalarResult = await command.ExecuteScalarAsync();
+                    OPTRNo = scalarResult + "".ToString();
+                }
+
+                if (!string.IsNullOrEmpty(OPTRNo))
+                {
+                    var optr = new OPTR
+                    {
+                        OPTRNo = OPTRNo,
+                        oprNo = details.oprNo,
+                        ttype = details.ttype,
+                        otype = details.otype,
+                        reason = details.reason,
+                        receivedBy = details.receivedBy,
+                        issuedBy = details.issuedBy,
+                        approvedBy = details.approvedBy,
+                        //postFlag = false,
+                        //voidFlag = false,
+                        createdBy = details.createdBy,
+                        Date_Created = DateTime.Now,
+                        Date_Updated = DateTime.Now
+                    };
+                    // Save changes to the database
+                    await dBContext.OPTRS.AddAsync(optr);
+                    await dBContext.SaveChangesAsync();
+
+                    //return Ok(optr);
+                    //return Ok(new
+                    //{
+                    //    message = "Successfully Saved!"
+                    //});
+
+                    // Fetch existing items by OPR No
+                    var existingItems = await dBContext.OPRItems
+                                                       .Where(x => x.oprNo == details.oprNo)
+                                                       .ToListAsync();
+
+
+                    foreach (var updatedItem in updatedItems)
+                    {
+                        // Find if the updated item exists in the existing items
+                        var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+
+                        if (existingItem != null)
+                        {
+
+                            // Update the existing item's fields with the updated data
+                            existingItem.optrFlag = true;
+                            existingItem.OPTRNo = OPTRNo;
+                            // Update other fields as necessary
+
+
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "OPTR",
+                                RefNo = OPTRNo,
+                                itemNo = existingItem.OPRINO,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
+                        }
+                    }
+
+                    await dBContext.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        message = "Successfully Saved!",
+                        details = optr,
+                        items = existingItems
+                    });
+                }
+                else
+                {
+                    return BadRequest(
+                        new { message = "OPTR No could not be generated.!" });
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
+            }
+        }
+   
     }
 }
 

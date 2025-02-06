@@ -156,6 +156,27 @@ namespace DDNAEINV.Controllers
             return BadRequest(new { message = "OPR No is required." });
         }
 
+        // localhost:port/api/OPRITEM/OPTRNO/{id}
+        [HttpGet("OPTRNO/{optrNo}")]
+        public async Task<IActionResult> RetrieveByOPTRNO(string optrNo)
+        {
+
+            if (optrNo != null)
+            {
+                var items = await dBContext.OPRItems
+                                            .Where(x => x.OPTRNo == optrNo)
+                                            .ToListAsync();
+
+                if (items == null || items.Count == 0)
+                {
+                    return NotFound(new { message = "No items found for the OPTR #000" + optrNo });
+                }
+
+                return Ok(items);
+            }
+
+            return BadRequest(new { message = "OPTR No is required." });
+        }
 
         // localhost:port/api/OPRITEM/QRCode/{id}
         [HttpGet("QRCode/{qrcode}")]
