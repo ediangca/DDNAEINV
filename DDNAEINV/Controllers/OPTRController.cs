@@ -604,18 +604,18 @@ namespace DDNAEINV.Controllers
 
                         if (existingItem != null)
                         {
+                            var oldOPTRNo = existingItem.OPTRNo;
 
                             // Update the existing item's fields with the updated data
                             existingItem.optrFlag = true;
                             existingItem.OPTRNo = OPTRNo;
                             // Update other fields as necessary
 
-
-
                             var propertyCards = new PropertyCard
                             {
                                 Ref = "OPTR",
-                                RefNo = OPTRNo,
+                                REFNoFrom = oldOPTRNo,
+                                REFNoTo = OPTRNo,
                                 itemNo = existingItem.OPRINO,
                                 propertyNo = existingItem.PropertyNo,
                                 issuedBy = details.issuedBy,
@@ -624,6 +624,9 @@ namespace DDNAEINV.Controllers
                                 createdBy = details.createdBy,
                                 Date_Created = DateTime.Now,
                             };
+
+
+
 
                             await dBContext1.PropertyCards.AddAsync(propertyCards);
                             await dBContext1.SaveChangesAsync();

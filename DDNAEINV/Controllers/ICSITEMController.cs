@@ -49,10 +49,10 @@ namespace DDNAEINV.Controllers
             return dBContext.ICSItems
                 .Where(pi => (dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
                              dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
-                          && pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
+                          && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
             pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
             pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) ||
-            pi.Date_Acquired.ToString().Contains(key));
+            pi.Date_Acquired.ToString().Contains(key)));
         }
 
 

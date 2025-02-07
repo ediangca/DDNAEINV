@@ -35,6 +35,7 @@ namespace DDNAEINV.Data
         public DbSet<OPTR> OPTRS { get; set; }
         public DbSet<PRS> PRSS { get; set; }
         public DbSet<RRSEP> RRSEPS { get; set; }
+        public DbSet<OPRR> OPRRS { get; set; }
         public DbSet<ParItem> PARItems { get; set; }
         public DbSet<ICSItem> ICSItems { get; set; }
         public DbSet<OPRItem> OPRItems { get; set; }
@@ -60,6 +61,7 @@ namespace DDNAEINV.Data
         public DbSet<OPRVw> ListOfOPR { get; set; } //List of OPR
         public DbSet<OPTRVw> ListOfOPTR { get; set; } //List of REPAR
         public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
+        public DbSet<OPRRVw> ListOfOPRR { get; set; } //List of OPRR
 
 
         public DbSet<ICSItemVw> ListOfPostedICSItems { get; set; } //List of Posted ICS Items
@@ -229,6 +231,11 @@ namespace DDNAEINV.Data
                 entity.HasKey(e => e.RRSEPNo); // Configuring primary key
                                                // Other configurations...
             });
+            modelBuilder.Entity<OPRR>(entity =>
+            {
+                entity.HasKey(e => e.OPRRNo); // Configuring primary key
+                                               // Other configurations...
+            });
             //PropertyCards
             modelBuilder.Entity<PropertyCard>(entity =>
             {
@@ -334,6 +341,12 @@ namespace DDNAEINV.Data
                 entity.HasNoKey();
             });
 
+            modelBuilder.Entity<OPRRVw>().ToView("ListOfREPAR");
+            modelBuilder.Entity<OPRRVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
             modelBuilder.Entity<OPTRVw>().ToView("ListOfOPTR");
             modelBuilder.Entity<OPTRVw>(entity =>
             {
@@ -367,6 +380,12 @@ namespace DDNAEINV.Data
 
             modelBuilder.Entity<RRSEPVw>().ToView("ListOfRRSEP");
             modelBuilder.Entity<RRSEPVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<OPRRVw>().ToView("ListOfOPRR");
+            modelBuilder.Entity<OPRRVw>(entity =>
             {
                 entity.HasNoKey();
             });

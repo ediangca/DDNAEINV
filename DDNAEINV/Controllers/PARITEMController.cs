@@ -48,9 +48,9 @@ namespace DDNAEINV.Controllers
             return dBContext.PARItems
                 .Where(pi => (dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) ||
                              dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
-                          && pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
+                          && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
             pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
-            pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) || pi.Date_Acquired.ToString().Contains(key));
+            pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) || pi.Date_Acquired.ToString().Contains(key)));
         }
 
 
