@@ -8,7 +8,7 @@ namespace DDNAEINV.Model.Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int? PARINO { get; set; } = 0;
+        public int? PARINO { get; set; } = null;
         public required string PARNo { get; set; }
         public required string IID { get; set; }
         public required string Brand { get; set; }

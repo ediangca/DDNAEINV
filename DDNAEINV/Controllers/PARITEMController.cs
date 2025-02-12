@@ -1,8 +1,10 @@
 ﻿using DDNAEINV.Data;
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
+using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Entity;
 using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
@@ -12,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class PARITEMController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public PARITEMController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
         }
         // localhost:port/api/PARITEM
         [HttpGet]
@@ -117,6 +121,7 @@ namespace DDNAEINV.Controllers
 
                 // Add the item to the context
                 dBContext.PARItems.Add(item);
+
             }
 
             try

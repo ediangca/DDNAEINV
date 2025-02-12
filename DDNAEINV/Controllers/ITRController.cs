@@ -1,9 +1,11 @@
 ﻿using DDNAEINV.Data;
 using DDNAEINV.Model.Details;
+using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DDNAEINV.Controllers
 {
@@ -12,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class ITRController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public ITRController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/ITR
@@ -365,6 +369,130 @@ namespace DDNAEINV.Controllers
             {
                 message = "Successfully Removed"
             });
+        }
+
+
+
+        // localhost:port/api/ITR/Transfer
+        [HttpPost]
+        [Route("Transfer")]
+        public async Task<IActionResult> Transfer([FromBody] CreateITRRequest request)
+        {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "ITR is Invalid!" });
+
+
+            try
+            {
+                var sqlQuery = "SELECT dbo.GenerateITRID(@icsNo) AS GenITRID";
+
+                // SQL parameter for the type
+                var param = new SqlParameter("@icsNo", (details.icsNo + "").ToString());
+
+                // Execute the query and get the result
+                string ITRNo;
+                using (var command = dBContext.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = sqlQuery;
+                    command.Parameters.Add(param);
+
+                    await dBContext.Database.OpenConnectionAsync();
+
+                    var scalarResult = await command.ExecuteScalarAsync();
+                    ITRNo = scalarResult + "".ToString();
+                }
+
+                if (!string.IsNullOrEmpty(ITRNo))
+                {
+                    var itr = new ITR
+                    {
+                        ITRNo = ITRNo,
+                        icsNo = details.icsNo,
+                        ttype = details.ttype,
+                        otype = details.otype,
+                        reason = details.reason,
+                        receivedBy = details.receivedBy,
+                        issuedBy = details.issuedBy,
+                        approvedBy = details.approvedBy,
+                        //postFlag = false,
+                        //voidFlag = false,
+                        createdBy = details.createdBy,
+                        Date_Created = DateTime.Now,
+                        Date_Updated = DateTime.Now
+                    };
+                    // Save changes to the database
+                    await dBContext.ITRS.AddAsync(itr);
+                    await dBContext.SaveChangesAsync();
+
+                    //return Ok(optr);
+                    //return Ok(new
+                    //{
+                    //    message = "Successfully Saved!"
+                    //});
+
+                    // Fetch existing items by OPR No
+                    var existingItems = await dBContext.ICSItems
+                                                       .Where(x => x.ICSNo == details.icsNo)
+                                                       .ToListAsync();
+
+
+                    foreach (var updatedItem in updatedItems)
+                    {
+                        // Find if the updated item exists in the existing items
+                        var existingItem = existingItems.FirstOrDefault(x => x.ICSItemNo == updatedItem.ICSItemNo);
+
+                        if (existingItem != null)
+                        {
+                            var oldITRNo = existingItem.ITRNo;
+
+                            // Update the existing item's fields with the updated data
+                            existingItem.itrFlag = true;
+                            existingItem.ITRNo = ITRNo;
+                            // Update other fields as necessary
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "ITR",
+                                REFNoFrom = oldITRNo,
+                                REFNoTo = ITRNo,
+                                itemNo = existingItem.ICSItemNo,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
+                        }
+                    }
+
+                    await dBContext.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        message = "Successfully Saved!",
+                        details = itr,
+                        items = existingItems
+                    });
+                }
+                else
+                {
+                    return BadRequest(
+                        new { message = "OPTR No could not be generated.!" });
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
+            }
         }
 
     }

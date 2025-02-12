@@ -254,7 +254,6 @@ namespace DDNAEINV.Controllers
                                                        .Where(x => x.OPTRNo == details.OPTRNo)
                                                        .ToListAsync();
 
-
                     foreach (var updatedItem in updatedItems)
                     {
                         // Find if the updated item exists in the existing items
@@ -600,8 +599,8 @@ namespace DDNAEINV.Controllers
                     foreach (var updatedItem in updatedItems)
                     {
                         // Find if the updated item exists in the existing items
-                        var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
-
+                        var existingItem = existingItems.FirstOrDefault(x => x.OPRINO == updatedItem.OPRINO);
+                        
                         if (existingItem != null)
                         {
                             var oldOPTRNo = existingItem.OPTRNo;

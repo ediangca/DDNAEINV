@@ -2,8 +2,11 @@
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Data.Entity;
 
 namespace DDNAEINV.Controllers
 {
@@ -42,6 +45,7 @@ namespace DDNAEINV.Controllers
         }
 
         // localhost:port/api/PAR/Create/
+        /**
         [HttpPost]
         [Route("Create")]
         public async Task<IActionResult> Create([FromBody] ParDto details)
@@ -89,6 +93,63 @@ namespace DDNAEINV.Controllers
                 return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
             }
         }
+
+        */
+
+        // localhost:port/api/PAR/Create/
+        [HttpPost]
+        [Route("Create")]
+        public async Task<IActionResult> Create([FromBody] CreateParRequest details)
+        {
+            var p = details.Details;
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "PAR is Invalid!" });
+
+            var parExist = await dBContext.PARS.FirstOrDefaultAsync(x => x.parNo == details.Details.parNo);
+
+            if (parExist != null)
+                return BadRequest(new { message = "PAR already exist!" });
+
+
+            try
+            {
+                var par = new Par
+                {
+                    parNo = p.parNo,
+                    lgu = p.lgu,
+                    fund = p.fund,
+                    receivedBy = p.receivedBy,
+                    issuedBy = p.issuedBy,
+                    postFlag = p.postFlag,
+                    voidFlag = p.voidFlag,
+                    createdBy = p.createdBy,
+                    Date_Created = DateTime.Now,
+                    Date_Updated = DateTime.Now
+                };
+
+
+                // Save changes to the database
+                await dBContext.PARS.AddAsync(par);
+                await dBContext.SaveChangesAsync();
+
+                await dBContext.PARItems.AddRangeAsync(details.parItems);
+
+                await dBContext.SaveChangesAsync();
+                return Ok(new
+                {
+                    message = "Successfully Saved!"
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
+            }
+        }
+
+
+
 
         // localhost:port/api/PAR/{id}
         [HttpGet("{id}")]
@@ -225,4 +286,12 @@ namespace DDNAEINV.Controllers
 
 
     }
+}
+
+
+
+public class CreateParRequest
+{
+    public ParDto Details { get; set; }
+    public List<ParItem> parItems { get; set; }
 }

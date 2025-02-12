@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Data.Entity;
 
 namespace DDNAEINV.Controllers
 {
@@ -14,10 +15,12 @@ namespace DDNAEINV.Controllers
     public class REPARController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public REPARController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/REPAR
@@ -369,6 +372,133 @@ namespace DDNAEINV.Controllers
                 message = "Successfully Removed"
             });
         }
+
+
+        // localhost:port/api/REPAR/Transfer
+        [HttpPost]
+        [Route("Transfer")]
+        public async Task<IActionResult> Transfer([FromBody] CreateReparRequest request)
+        {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = "PTR is Invalid!" });
+
+
+            try
+            {
+                var sqlQuery = "SELECT dbo.GenerateREPARID(@parNo) AS GenPTRID";
+
+                // SQL parameter for the type
+                var param = new SqlParameter("@parNo", (details.parNo + "").ToString());
+
+                // Execute the query and get the result
+                string ptrNo;
+                using (var command = dBContext.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = sqlQuery;
+                    command.Parameters.Add(param);
+
+                    await dBContext.Database.OpenConnectionAsync();
+
+                    var scalarResult = await command.ExecuteScalarAsync();
+                    ptrNo = scalarResult + "".ToString();
+                }
+
+                if (!string.IsNullOrEmpty(ptrNo))
+                {
+                    var ptr = new RePAR
+                    {
+                        REPARNo = ptrNo,
+                        parNo = details.parNo,
+                        ttype = details.ttype,
+                        otype = details.otype,
+                        reason = details.reason,
+                        receivedBy = details.receivedBy,
+                        issuedBy = details.issuedBy,
+                        approvedBy = details.approvedBy,
+                        //postFlag = false,
+                        //voidFlag = false,
+                        createdBy = details.createdBy,
+                        Date_Created = DateTime.Now,
+                        Date_Updated = DateTime.Now
+                    };
+                    // Save changes to the database
+                    await dBContext.REPARS.AddAsync(ptr);
+                    await dBContext.SaveChangesAsync();
+
+                    //return Ok(optr);
+                    //return Ok(new
+                    //{
+                    //    message = "Successfully Saved!"
+                    //});
+
+                    // Fetch existing items by PAR No
+                    var existingItems = await dBContext.PARItems
+                                                       .Where(x => x.PARNo == details.parNo)
+                                                       .ToListAsync();
+
+
+                    foreach (var updatedItem in updatedItems)
+                    {
+                        // Find if the updated item exists in the existing items
+                        var existingItem = existingItems.FirstOrDefault(x => x.PARINO == updatedItem.PARINO);
+
+                        if (existingItem != null)
+                        {
+                            var oldPTRNo = existingItem.REPARNo;
+
+                            // Update the existing item's fields with the updated data
+                            existingItem.reparFlag = true;
+                            existingItem.REPARNo = ptrNo;
+                            // Update other fields as necessary
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "PTR",
+                                REFNoFrom = oldPTRNo,
+                                REFNoTo = ptrNo,
+                                itemNo = existingItem.PARINO,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+
+
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
+                        }
+                    }
+
+                    await dBContext.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        message = "Successfully Saved!",
+                        details = ptr,
+                        items = existingItems
+                    });
+                }
+                else
+                {
+                    return BadRequest(
+                        new { message = "OPTR No could not be generated.!" });
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
+            }
+        }
+
 
     }
 }
