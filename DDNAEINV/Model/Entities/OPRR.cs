@@ -7,7 +7,7 @@ namespace DDNAEINV.Model.Entities
     public class OPRR
     {
         [Key]
-        public required string OPRRNo { get; set; }
+        public string? OPRRNo { get; set; } = String.Empty;
         public required string rtype { get; set; }
         public required string otype { get; set; }
         public string? issuedBy { get; set; } = String.Empty;

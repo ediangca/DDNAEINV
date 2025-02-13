@@ -406,21 +406,21 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/PARITEM/Delete
         [HttpDelete]
         [Route("Delete")]
-        public async Task<IActionResult> Delete(string parNo)
+        public async Task<IActionResult> Delete(string icsNo)
         {
-            if (string.IsNullOrEmpty(parNo))
+            if (string.IsNullOrEmpty(icsNo))
             {
-                return BadRequest(new { message = "PAR No is required." });
+                return BadRequest(new { message = "ICS No is required." });
             }
 
-            var itemsToDelete = await dBContext.PARItems.Where(x => x.PARNo == parNo).ToListAsync();
+            var itemsToDelete = await dBContext.ICSItems.Where(x => x.ICSNo == icsNo).ToListAsync();
 
             if (itemsToDelete == null || itemsToDelete.Count == 0)
             {
                 return NotFound(new { message = "No items found for the given PAR No." });
             }
 
-            dBContext.PARItems.RemoveRange(itemsToDelete);
+            dBContext.ICSItems.RemoveRange(itemsToDelete);
 
             try
             {

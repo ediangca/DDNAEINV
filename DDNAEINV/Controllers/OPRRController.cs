@@ -14,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class OPRRController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public OPRRController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/OPRR
@@ -77,11 +79,10 @@ namespace DDNAEINV.Controllers
                 {
                     return BadRequest(new { message = "Failed to Generate OPRR ID!" });
                 }
-                details.OPRRNo = OPRRNo;
 
                     var oprr = new OPRR
                 {
-                    OPRRNo = details.OPRRNo,
+                    OPRRNo = OPRRNo,
                     rtype = details.rtype,
                     otype = details.otype,
                     issuedBy = details.issuedBy,
@@ -105,15 +106,32 @@ namespace DDNAEINV.Controllers
                 foreach (var updatedItem in items)
                 {
                     // Find if the updated item exists in the existing items
-                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    var existingItem = existingItems.FirstOrDefault(x => x.OPRINO == updatedItem.OPRINO);
 
                     if (existingItem != null)
                     {
 
                         // Update the existing item's fields with the updated data
                         existingItem.oprrFlag = true;
-                        existingItem.OPRRNo = details.OPRRNo;
+                        existingItem.OPRRNo = OPRRNo;
                         // Update other fields as necessary
+
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "OPRR",
+                            REFNoFrom = existingItem.OPTRNo != null ? existingItem.OPTRNo: existingItem.oprNo.ToString(),
+                            REFNoTo = OPRRNo,
+                            itemNo = existingItem.OPRINO,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = details.issuedBy,
+                            receivedBy = details.receivedBy,
+                            approvedBy = details.approvedBy,
+                            createdBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+
+                        await dBContext1.PropertyCards.AddAsync(propertyCards);
+                        await dBContext1.SaveChangesAsync();
                     }
                 }
 
@@ -145,7 +163,7 @@ namespace DDNAEINV.Controllers
                                        .FirstOrDefaultAsync();
 
             if (oprr == null)
-                return NotFound(new { message = "OPRR not Found!" });
+                return NotFound(new { message = "OPRR No. not Found!" });
 
             // Find the OPRR Item by id asynchronously
             var oprrItems = await dBContext.OPRItems
@@ -171,7 +189,7 @@ namespace DDNAEINV.Controllers
             var oprr = await dBContext.OPRRS.FindAsync(id);
 
             if (oprr == null)
-                return NotFound(new { message = "OPRR not found." });
+                return NotFound(new { message = "OPRR No. not found." });
 
             var details = request.Details;
 
@@ -197,9 +215,19 @@ namespace DDNAEINV.Controllers
                 foreach (var oprItem in opritems)
                 {
                     // Update the OPRR properties
+                    var existInCard = await dBContext1.PropertyCards.Where(x => x.Ref == "OPRR" && x.REFNoTo == oprItem.OPRRNo && x.itemNo == oprItem.OPRINO).FirstOrDefaultAsync();
+
+                    if (existInCard != null)
+                    {
+                        dBContext1.PropertyCards.Remove(existInCard);
+                        await dBContext1.SaveChangesAsync();
+                    }
+
                     oprItem.oprrFlag = false;
                     oprItem.OPRRNo = null;
+
                 }
+
 
                 var existingItems = await dBContext.OPRItems.ToListAsync();
 
@@ -215,6 +243,23 @@ namespace DDNAEINV.Controllers
                         existingItem.oprrFlag = true;
                         existingItem.OPRRNo = details.OPRRNo;
                         // Update other fields as necessary
+
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "OPRR",
+                            REFNoFrom = existingItem.OPTRNo != null ? existingItem.OPTRNo : existingItem.oprNo.ToString(),
+                            REFNoTo = existingItem.OPRRNo,
+                            itemNo = existingItem.OPRINO,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = details.issuedBy,
+                            receivedBy = details.receivedBy,
+                            approvedBy = details.approvedBy,
+                            createdBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+
+                        await dBContext1.PropertyCards.AddAsync(propertyCards);
+                        await dBContext1.SaveChangesAsync();
                     }
                 }
 
@@ -293,10 +338,20 @@ namespace DDNAEINV.Controllers
                                                .ToListAsync();
 
             // Nullify OPRR No and update oprrFlag
-            foreach (var oprrItem in oprItems)
+            foreach (var oprItem in oprItems)
             {
-                oprrItem.OPRRNo = null;
-                oprrItem.oprrFlag = false;
+
+                // Update the OPRR properties
+                var existInCard = await dBContext1.PropertyCards.Where(x => x.Ref == "OPRR" && x.REFNoTo == oprItem.OPRRNo && x.itemNo == oprItem.OPRINO).FirstOrDefaultAsync();
+
+                if (existInCard != null)
+                {
+                    dBContext1.PropertyCards.Remove(existInCard);
+                    await dBContext1.SaveChangesAsync();
+                }
+                oprItem.OPRRNo = null;
+                oprItem.oprrFlag = false;
+
             }
 
             // Save changes if any items were updated

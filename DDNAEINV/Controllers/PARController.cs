@@ -2,11 +2,9 @@
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
-using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using System.Data.Entity;
+using System.Data;
 
 namespace DDNAEINV.Controllers
 {
@@ -43,6 +41,8 @@ namespace DDNAEINV.Controllers
             x.created.ToString().Contains(key) || x.Date_Created.ToString().Contains(key) || x.Date_Updated.ToString().Contains(key))
                 .OrderByDescending(x => x.Date_Created);
         }
+
+
 
         // localhost:port/api/PAR/Create/
         /**
@@ -99,17 +99,17 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/PAR/Create/
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> Create([FromBody] CreateParRequest details)
+        public async Task<IActionResult> Create([FromBody] CreateParRequest request)
         {
-            var p = details.Details;
+            var p = request.Details;
 
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "PAR is Invalid!" });
 
-            var parExist = await dBContext.PARS.FirstOrDefaultAsync(x => x.parNo == details.Details.parNo);
+            var parExist = await dBContext.PARS.FirstOrDefaultAsync(x => x.parNo == p.parNo);
 
             if (parExist != null)
-                return BadRequest(new { message = "PAR already exist!" });
+                return BadRequest(new { message = "PAR No. already exist!" });
 
 
             try
@@ -133,9 +133,35 @@ namespace DDNAEINV.Controllers
                 await dBContext.PARS.AddAsync(par);
                 await dBContext.SaveChangesAsync();
 
-                await dBContext.PARItems.AddRangeAsync(details.parItems);
-
+                await dBContext.PARItems.AddRangeAsync(request.parItems);
                 await dBContext.SaveChangesAsync();
+
+                var existingItems = await dBContext.PARItems
+                                                    .Where(x => x.PARNo == p.parNo)
+                                                    .ToListAsync();
+
+                foreach (var item in request.parItems)
+                {
+                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == item.PropertyNo);
+
+                    if (existingItem != null)
+                    {
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "PAR",
+                            REFNoFrom = p.parNo,
+                            itemNo = existingItem.PARINO,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = p.issuedBy,
+                            receivedBy = p.receivedBy,
+                            createdBy = p.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        await dBContext.PropertyCards.AddAsync(propertyCards);
+                        await dBContext.SaveChangesAsync();
+                    }
+                }
+
                 return Ok(new
                 {
                     message = "Successfully Saved!"
@@ -163,6 +189,18 @@ namespace DDNAEINV.Controllers
                 return NotFound(new { message = "PAR not Found!" });
 
             return Ok(par);
+        }
+
+        // localhost:port/api/PAR/Search/
+        [HttpGet]
+        [Route("PARNo")]
+        public async Task<IActionResult> SearchByPARNo(string key)
+        {
+            // Check if any records match the given key
+            bool isExist = await dBContext.ListOfPar
+                .AnyAsync(x => x.parNo == key);
+
+            return Ok(isExist); // Returns true or false
         }
 
 

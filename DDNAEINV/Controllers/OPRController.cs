@@ -1,7 +1,11 @@
-﻿using DDNAEINV.Data;
+﻿using Azure.Core;
+using DDNAEINV.Data;
+using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
+using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace DDNAEINV.Controllers
 {
@@ -41,13 +45,15 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/OPR/Create/
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> Create([FromBody] OPRDto details)
+        public async Task<IActionResult> Create([FromBody] CreateOPRRequest request)
         {
+            var o = request.Details;
+
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "OPR is Invalid!" });
 
-            var isExist = await dBContext.OPRS.FirstOrDefaultAsync(x => x.issuedBy == details.issuedBy
-            && x.itemSource == details.itemSource);
+            var isExist = await dBContext.OPRS.FirstOrDefaultAsync(x => x.issuedBy == o.issuedBy
+            && x.itemSource == o.itemSource);
 
             if (isExist != null)
                 return BadRequest(new { message = "OPR already exist!" });
@@ -58,13 +64,13 @@ namespace DDNAEINV.Controllers
 
                 var opr = new OPR
                 {
-                    itemSource = details.itemSource,
-                    ownership = details.ownership,
-                    receivedBy = details.receivedBy,
-                    issuedBy = details.issuedBy,
-                    postFlag = details.postFlag,
-                    voidFlag = details.voidFlag,
-                    createdBy = details.createdBy,
+                    itemSource = o.itemSource,
+                    ownership = o.ownership,
+                    receivedBy = o.receivedBy,
+                    issuedBy = o.issuedBy,
+                    postFlag = o.postFlag,
+                    voidFlag = o.voidFlag,
+                    createdBy = o.createdBy,
                     Date_Created = DateTime.Now,
                     Date_Updated = DateTime.Now
                 };
@@ -72,6 +78,33 @@ namespace DDNAEINV.Controllers
                 // Save changes to the database
                 await dBContext.OPRS.AddAsync(opr);
                 await dBContext.SaveChangesAsync();
+
+
+                var existingItems = await dBContext.OPRItems
+                                                    .Where(x => x.oprNo == o.oprNo)
+                                                    .ToListAsync();
+
+                foreach (var item in request.oprItems)
+                {
+                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == item.PropertyNo);
+
+                    if (existingItem != null)
+                    {
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "OPR",
+                            REFNoFrom = o.oprNo.ToString(),
+                            itemNo = existingItem.OPRINO,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = o.issuedBy,
+                            receivedBy = o.receivedBy,
+                            createdBy = o.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        await dBContext.PropertyCards.AddAsync(propertyCards);
+                        await dBContext.SaveChangesAsync();
+                    }
+                }
 
                 //return Ok(opr);
                 return Ok(new
@@ -219,4 +252,9 @@ namespace DDNAEINV.Controllers
 
 
 
+}
+public class CreateOPRRequest
+{
+    public OPRDto Details { get; set; }
+    public List<OPRItem> oprItems { get; set; }
 }

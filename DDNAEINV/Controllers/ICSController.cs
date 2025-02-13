@@ -1,4 +1,5 @@
-﻿using DDNAEINV.Data;
+﻿using Azure.Core;
+using DDNAEINV.Data;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
@@ -43,30 +44,32 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/ICS/Create/
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> Create([FromBody] ICSDetails icsDetatils)
+        public async Task<IActionResult> Create([FromBody] ICSDetails request)
         {
+
+            var i = request.Details;
 
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "ICS is Invalid!" });
 
-            var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo == icsDetatils.Details.ICSNo);
+            var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo == i.ICSNo);
 
             if (icsExist != null)
-                return BadRequest(new { message = "ICS already exist!" });
+                return BadRequest(new { message = "ICS No. already exist!" });
 
 
             try
             {
                 var ics = new ICS
                 {
-                    ICSNo = icsDetatils.Details.ICSNo,
-                    entityName = icsDetatils.Details.entityName,
-                    fund = icsDetatils.Details.fund,
-                    receivedBy = icsDetatils.Details.receivedBy,
-                    issuedBy = icsDetatils.Details.issuedBy,
+                    ICSNo = i.ICSNo,
+                    entityName = i.entityName,
+                    fund = i.fund,
+                    receivedBy = i.receivedBy,
+                    issuedBy = i.issuedBy,
                     postFlag = false,
                     voidFlag = false,
-                    createdBy = icsDetatils.Details.createdBy,
+                    createdBy = i.createdBy,
                     Date_Created = DateTime.Now,
                     Date_Updated = DateTime.Now
                 };
@@ -75,9 +78,35 @@ namespace DDNAEINV.Controllers
                 await dBContext.ICSS.AddAsync(ics);
                 await dBContext.SaveChangesAsync();
 
-                await dBContext.ICSItems.AddRangeAsync(icsDetatils.icsItems);
-
+                await dBContext.ICSItems.AddRangeAsync(request.icsItems);
                 await dBContext.SaveChangesAsync();
+
+                var existingItems = await dBContext.ICSItems
+                                                    .Where(x => x.ICSNo == i.ICSNo)
+                                                    .ToListAsync();
+
+                foreach (var item in request.icsItems)
+                {
+                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == item.PropertyNo);
+
+                    if (existingItem != null)
+                    {
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "ICS",
+                            REFNoFrom = i.ICSNo,
+                            itemNo = existingItem.ICSItemNo,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = i.issuedBy,
+                            receivedBy = i.receivedBy,
+                            createdBy = i.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        await dBContext.PropertyCards.AddAsync(propertyCards);
+                        await dBContext.SaveChangesAsync();
+                    }
+                }
+
                 return Ok(new
                 {
                     message = "Successfully Saved!"
@@ -104,6 +133,20 @@ namespace DDNAEINV.Controllers
 
             return Ok(ics);
         }
+
+
+        // localhost:port/api/ICS/Search/
+        [HttpGet]
+        [Route("ICSNo")]
+        public async Task<IActionResult> SearchByICSNo(string key)
+        {
+            // Check if any records match the given key
+            bool isExist = await dBContext.ListOfICS
+                .AnyAsync(x => x.ICSNo == key);
+
+            return Ok(isExist); // Returns true or false
+        }
+
 
         // localhost:port/api/ICS/Update/
         [HttpPut]

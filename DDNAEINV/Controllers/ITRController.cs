@@ -156,6 +156,27 @@ namespace DDNAEINV.Controllers
                             existingItem.itrFlag = true;
                             existingItem.ITRNo = ITRNo;
                             // Update other fields as necessary
+
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "ITR",
+                                REFNoFrom = details.icsNo,
+                                REFNoTo = ITRNo,
+                                itemNo = existingItem.ICSItemNo,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+
+
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
                         }
                     }
 

@@ -6,7 +6,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Data.Entity;
+
+
 
 namespace DDNAEINV.Controllers
 {
@@ -137,13 +138,6 @@ namespace DDNAEINV.Controllers
                     await dBContext.REPARS.AddAsync(repar);
                     await dBContext.SaveChangesAsync();
 
-                    //return Ok(repar);
-                    //return Ok(new
-                    //{
-                    //    message = "Successfully Saved!"
-                    //});
-
-                    // Fetch existing items by PAR No
                     var existingItems = await dBContext.PARItems
                                                        .Where(x => x.PARNo == details.parNo)
                                                        .ToListAsync();
@@ -160,6 +154,27 @@ namespace DDNAEINV.Controllers
                             // Update the existing item's fields with the updated data
                             existingItem.reparFlag = true;
                             existingItem.REPARNo = REPARNo;
+
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "PTR",
+                                REFNoFrom = details.parNo,
+                                REFNoTo = REPARNo,
+                                itemNo = existingItem.PARINO,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+
+
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
                             // Update other fields as necessary
                         }
                     }
