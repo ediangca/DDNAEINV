@@ -6,9 +6,10 @@
         public string? REF { get; set; } = String.Empty;
         public string? RefNoFrom { get; set; } = String.Empty;
         public string? RefNoTo { get; set; } = String.Empty;
-        public int? ItemNo{ get; set; } = null;
+        public int? ItemNo { get; set; } = null;
         public string? PropertyNo { get; set; } = String.Empty;
         public string? Description { get; set; } = String.Empty;
+        public string? QRCode { get; set; } = String.Empty;
         public string? IssuedBy { get; set; } = String.Empty;
         public string? Issued { get; set; } = String.Empty;
         public string? Received { get; set; } = String.Empty;

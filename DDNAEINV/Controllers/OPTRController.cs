@@ -161,6 +161,27 @@ namespace DDNAEINV.Controllers
                             existingItem.optrFlag = true;
                             existingItem.OPTRNo = OPTRNo;
                             // Update other fields as necessary
+
+
+                            var propertyCards = new PropertyCard
+                            {
+                                Ref = "OPTR",
+                                REFNoFrom = details.oprNo.ToString(),
+                                REFNoTo = OPTRNo,
+                                itemNo = existingItem.OPRINO,
+                                propertyNo = existingItem.PropertyNo,
+                                issuedBy = details.issuedBy,
+                                receivedBy = details.receivedBy,
+                                approvedBy = details.approvedBy,
+                                createdBy = details.createdBy,
+                                Date_Created = DateTime.Now,
+                            };
+
+
+
+
+                            await dBContext1.PropertyCards.AddAsync(propertyCards);
+                            await dBContext1.SaveChangesAsync();
                         }
                     }
 
@@ -188,6 +209,7 @@ namespace DDNAEINV.Controllers
         }
 
         // localhost:port/api/OPTR/Create/
+        /**
         [HttpPost]
         [Route("RECreate")]
         public async Task<IActionResult> RECreate([FromBody] CreateOPTRRequest request)
@@ -291,6 +313,8 @@ namespace DDNAEINV.Controllers
                 return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
             }
         }
+        */
+
 
         // localhost:port/api/OPR/{id}
         [HttpGet("{id}")]

@@ -4,6 +4,7 @@ using DDNAEINV.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Data.Entity;
 
 namespace DDNAEINV.Controllers
 {
@@ -12,11 +13,13 @@ namespace DDNAEINV.Controllers
     public class RRSEPController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
 
         public RRSEPController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/RRSEP
@@ -92,7 +95,25 @@ namespace DDNAEINV.Controllers
                         // Update the existing item's fields with the updated data
                         existingItem.rrsepFlag = true;
                         existingItem.RRSEPNo = details.RRSEPNo;
-                        // Update other fields as necessary
+
+
+                        //Store into Property History
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "PRS",
+                            REFNoFrom = existingItem.itrFlag != null ? existingItem.ITRNo : existingItem.ICSNo,
+                            REFNoTo = details.RRSEPNo,
+                            itemNo = existingItem.ICSItemNo,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = details.issuedBy,
+                            receivedBy = details.receivedBy,
+                            approvedBy = details.approvedBy,
+                            createdBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+
+                        await dBContext1.PropertyCards.AddAsync(propertyCards);
+                        await dBContext1.SaveChangesAsync();
                     }
                 }
 

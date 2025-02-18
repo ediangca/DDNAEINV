@@ -155,7 +155,7 @@ namespace DDNAEINV.Controllers
                             existingItem.reparFlag = true;
                             existingItem.REPARNo = REPARNo;
 
-
+                            //Store into Property History
                             var propertyCards = new PropertyCard
                             {
                                 Ref = "PTR",
@@ -170,12 +170,8 @@ namespace DDNAEINV.Controllers
                                 Date_Created = DateTime.Now,
                             };
 
-
-
-
                             await dBContext1.PropertyCards.AddAsync(propertyCards);
                             await dBContext1.SaveChangesAsync();
-                            // Update other fields as necessary
                         }
                     }
 
@@ -268,6 +264,14 @@ namespace DDNAEINV.Controllers
                     // Update the repar properties
                     reparItem.REPARNo = null;
                     reparItem.reparFlag = false;
+
+                    var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.Ref == "PRS" && x.propertyNo == reparItem.PropertyNo);
+
+                    if (cardExist != null)
+                    {
+                        dBContext1.PropertyCards.Remove(cardExist);
+                        await dBContext1.SaveChangesAsync();
+                    }
                 }
 
 
@@ -291,6 +295,25 @@ namespace DDNAEINV.Controllers
                         existingItem.Description = updatedItem.Description;
                         existingItem.SerialNo = updatedItem.SerialNo;
                         existingItem.Amount = updatedItem.Amount;
+
+
+                        var propertyCards = new PropertyCard
+                        {
+                            Ref = "PTR",
+                            REFNoFrom = existingItem.reparFlag != null ? existingItem.REPARNo : existingItem.PARNo,
+                            REFNoTo = existingItem.REPARNo,
+                            itemNo = existingItem.PARINO,
+                            propertyNo = existingItem.PropertyNo,
+                            issuedBy = details.issuedBy,
+                            receivedBy = details.receivedBy,
+                            approvedBy = details.approvedBy,
+                            createdBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+
+                        await dBContext1.PropertyCards.AddAsync(propertyCards);
+                        await dBContext1.SaveChangesAsync();
+
                     }
                 }
 
@@ -370,10 +393,17 @@ namespace DDNAEINV.Controllers
                                                .ToListAsync();
 
             // Nullify REPARNo and update reparFlag
-            foreach (var reparItem in reparItems)
+            foreach (var item in reparItems)
             {
-                reparItem.REPARNo = null;
-                reparItem.reparFlag = false;
+                item.REPARNo = null;
+                item.reparFlag = false;
+                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.Ref == "PTR" && x.propertyNo == item.PropertyNo);
+
+                if (cardExist != null)
+                {
+                    dBContext1.PropertyCards.Remove(cardExist);
+                    await dBContext1.SaveChangesAsync();  
+                }
             }
 
             // Save changes if any items were updated

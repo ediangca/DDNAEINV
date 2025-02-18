@@ -63,6 +63,8 @@ namespace DDNAEINV.Data
         public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
         public DbSet<OPRRVw> ListOfOPRR { get; set; } //List of OPRR
 
+
+        public DbSet<PropertyDetailsVw> ListOfProperty { get; set; } //PropertyCardDetails
         public DbSet<PropertyCardDetailsVw> PropertyCardDetails { get; set; } //PropertyCardDetails
 
 
@@ -491,11 +493,20 @@ namespace DDNAEINV.Data
                 entity.HasNoKey();
             });
 
+
+            modelBuilder.Entity<PropertyDetailsVw>().ToView("ListOfProperty");
+            modelBuilder.Entity<PropertyDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
             modelBuilder.Entity<PropertyCardDetailsVw>().ToView("PropertyCardDetails");
             modelBuilder.Entity<PropertyCardDetailsVw>(entity =>
             {
                 entity.HasNoKey();
             });
+
+            
 
 
             base.OnModelCreating(modelBuilder);

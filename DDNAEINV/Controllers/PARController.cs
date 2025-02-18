@@ -5,6 +5,7 @@ using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Data.Entity;
 
 namespace DDNAEINV.Controllers
 {
@@ -13,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class PARController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public PARController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/PAR
@@ -236,6 +239,14 @@ namespace DDNAEINV.Controllers
                 // Save changes to the database
                 dBContext.SaveChanges();
 
+                var cardExist = dBContext1.PropertyCards.Where(x => x.Ref == "PAR" && x.REFNoFrom == id).ToList();
+
+                if (cardExist.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(cardExist);
+                    dBContext1.SaveChanges();
+                }
+
                 //return Ok(par);
                 return Ok(new
                 {
@@ -313,6 +324,14 @@ namespace DDNAEINV.Controllers
             {
                 dBContext.PARItems.RemoveRange(existingItems);
                 dBContext.SaveChanges();
+
+                var cardExist = await dBContext1.PropertyCards.Where(x => x.Ref == "PAR" && x.REFNoFrom == id).ToListAsync();
+
+                if (cardExist.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(cardExist);
+                    dBContext1.SaveChanges();
+                }
             }
 
             return Ok(new
