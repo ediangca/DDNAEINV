@@ -46,7 +46,7 @@ namespace DDNAEINV.Controllers
             x.Approved.ToString().Contains(key) || x.Date_Created.ToString().Contains(key))
                 .OrderByDescending(x => x.Date_Created);
         }
-
+                
         // localhost:port/api/PropertyCard/PropertyList/
         [HttpGet]
         [Route("PropertyList")]
@@ -139,15 +139,14 @@ namespace DDNAEINV.Controllers
 
                 var propertyCard = new PropertyCard
                 {
-                    Ref = details.Ref,
+                    REF = details.REF,
                     REFNoFrom = details.REFNoFrom,
                     REFNoTo = details.REFNoTo,
-                    itemNo = details.itemNo,
-                    propertyNo = details.propertyNo,
-                    issuedBy = details.issuedBy,
-                    receivedBy = details.receivedBy,
-                    approvedBy = details.approvedBy,
-                    createdBy = details.createdBy,
+                    PropertyNo = details.PropertyNo,
+                    IssuedBy = details.IssuedBy,
+                    ReceivedBy = details.ReceivedBy,
+                    ApprovedBy = details.ApprovedBy,
+                    CreatedBy = details.CreatedBy,
                     Date_Created = DateTime.Now
 
                 };

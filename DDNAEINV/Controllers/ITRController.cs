@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -157,23 +158,18 @@ namespace DDNAEINV.Controllers
                             existingItem.ITRNo = ITRNo;
                             // Update other fields as necessary
 
-
                             var propertyCards = new PropertyCard
                             {
-                                Ref = "ITR",
+                                REF = "ITR",
                                 REFNoFrom = details.icsNo,
                                 REFNoTo = ITRNo,
-                                itemNo = existingItem.ICSItemNo,
-                                propertyNo = existingItem.PropertyNo,
-                                issuedBy = details.issuedBy,
-                                receivedBy = details.receivedBy,
-                                approvedBy = details.approvedBy,
-                                createdBy = details.createdBy,
+                                PropertyNo = existingItem.PropertyNo,
+                                IssuedBy = details.issuedBy,
+                                ReceivedBy = details.receivedBy,
+                                ApprovedBy = details.approvedBy,
+                                CreatedBy = details.createdBy,
                                 Date_Created = DateTime.Now,
                             };
-
-
-
 
                             await dBContext1.PropertyCards.AddAsync(propertyCards);
                             await dBContext1.SaveChangesAsync();
@@ -236,13 +232,13 @@ namespace DDNAEINV.Controllers
         [Route("Update")]
         public async Task<IActionResult> Update(string id, [FromBody] CreateITRRequest request)
         {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
             // Find the PAR by id
             var itr = await dBContext.ITRS.FindAsync(id);
 
             if (itr == null)
                 return NotFound(new { message = "ITR not found." });
-
-            ITRDto details = request.Details;
 
             try
             {
@@ -263,6 +259,10 @@ namespace DDNAEINV.Controllers
 
                 // Fetch existing ICS items by ITRNO No
                 var itrItems = await dBContext.ICSItems.Where(x => x.ITRNo == id).ToListAsync();
+                // Fetch existing ITR by CARD No
+                var existingProperties = await dBContext1.PropertyCards
+                                                   .Where(x => x.REF == "ITR" && x.REFNoTo == id)
+                                                   .ToListAsync();
 
                 // Nullify REPARNo and update reparFlag for old items
                 foreach (var itrItem in itrItems)
@@ -270,20 +270,20 @@ namespace DDNAEINV.Controllers
                     // Update the repar properties
                     itrItem.ITRNo = null;
                     itrItem.itrFlag = false;
+
                 }
 
-                await dBContext.SaveChangesAsync();
-
-                var updatedItems = request.UpdatedItems;
-
-                // Fetch existing items by ICS No
+                // Fetch existing items by PAR No
                 var existingItems = await dBContext.ICSItems.ToListAsync();
+
+
+                var propertyToAdd = new List<PropertyCard>();
 
                 // Update existing items or prepare to add new ones
                 foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
-                    var existingItem = existingItems.FirstOrDefault(x => x.ICSItemNo == updatedItem.ICSItemNo);
+                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
 
                     if (existingItem != null)
                     {
@@ -291,15 +291,62 @@ namespace DDNAEINV.Controllers
                         existingItem.itrFlag = true;
                         existingItem.ITRNo = id;
                         // Update other fields as necessary from updatedItem
+                        existingItem.Brand = updatedItem.Brand;
+                        existingItem.Model = updatedItem.Model;
                         existingItem.Description = updatedItem.Description;
-                        existingItem.Qty = updatedItem.Qty;
+                        existingItem.SerialNo = updatedItem.SerialNo;
                         existingItem.Amount = updatedItem.Amount;
-                        existingItem.EUL = updatedItem.EUL;
+
                     }
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        var propertyCard = new PropertyCard
+                        {
+                            REF = "ITR",
+                            REFNoFrom = updatedItem.ICSNo,
+                            REFNoTo = id,
+                            PropertyNo = updatedItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            CreatedBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        propertyToAdd.Add(propertyCard);
+
+
+                    }
+
+                }
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
                 }
 
-                // Save all changes to the database at once
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
+                }
+
+
                 await dBContext.SaveChangesAsync();
+                await dBContext1.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -374,10 +421,19 @@ namespace DDNAEINV.Controllers
                                                .ToListAsync();
 
             // Nullify ITRNo and update reparFlag
-            foreach (var reparItem in itrItems)
+            foreach (var item in itrItems)
             {
-                reparItem.ITRNo = null;
-                reparItem.itrFlag = false;
+                item.ITRNo = null;
+                item.itrFlag = false;
+
+                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.REF == "ITR" && x.REFNoTo == id && x.PropertyNo == item.PropertyNo);
+
+                if (cardExist != null)
+                {
+                    dBContext1.PropertyCards.Remove(cardExist);
+                    await dBContext1.SaveChangesAsync();
+                }
+
             }
 
             // Save changes if any items were updated
@@ -476,15 +532,14 @@ namespace DDNAEINV.Controllers
 
                             var propertyCards = new PropertyCard
                             {
-                                Ref = "ITR",
+                                REF = "ITR",
                                 REFNoFrom = oldITRNo,
                                 REFNoTo = ITRNo,
-                                itemNo = existingItem.ICSItemNo,
-                                propertyNo = existingItem.PropertyNo,
-                                issuedBy = details.issuedBy,
-                                receivedBy = details.receivedBy,
-                                approvedBy = details.approvedBy,
-                                createdBy = details.createdBy,
+                                PropertyNo = existingItem.PropertyNo,
+                                IssuedBy = details.issuedBy,
+                                ReceivedBy = details.receivedBy,
+                                ApprovedBy = details.approvedBy,
+                                CreatedBy = details.createdBy,
                                 Date_Created = DateTime.Now,
                             };
 

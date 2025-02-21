@@ -28,11 +28,16 @@ namespace DDNAEINV.Controllers
         [Route("posted")]
         public IActionResult PosteOPRItems()
         {
-
             var opritems = dBContext.OPRItems
-                .Where(pi => dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true)) 
-                //|| dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
-                .ToList();
+                .Where(pi => pi.oprrFlag == false &&
+                (pi.optrFlag == true && dBContext.OPTRS.Any(p => p.OPTRNo == pi.OPTRNo && p.postFlag == true))
+                || (pi.optrFlag == false && dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true))).ToList();
+
+
+            //var opritems = dBContext.OPRItems
+            //    .Where(pi => dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true)) 
+            //    //|| dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
+            //    .ToList();
 
             return Ok(opritems);
         }
@@ -43,8 +48,9 @@ namespace DDNAEINV.Controllers
         public IQueryable<OPRItem> SearchActiveOPRItems(string key)
         {
             return dBContext.OPRItems
-                .Where(pi => (dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true)) 
-                //|| dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
+                .Where(pi => pi.oprrFlag == false &&
+                (pi.optrFlag == true && dBContext.OPTRS.Any(p => p.OPTRNo == pi.OPTRNo && p.postFlag == true))
+                || (pi.optrFlag == false && dBContext.OPRS.Any(p => p.oprNo == pi.oprNo && p.postFlag == true))
                           && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
             pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
             pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) || pi.Date_Acquired.ToString().Contains(key)));

@@ -32,11 +32,15 @@ namespace DDNAEINV.Controllers
         [Route("posted")]
         public IActionResult PostedICSItem()
         {
-
             var icsItems = dBContext.ICSItems
-                .Where(pi => dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
-                             dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
-                .ToList();
+                .Where(pi => pi.rrsepFlag == false && 
+                (pi.itrFlag == true && dBContext.ITRS.Any(p => p.ITRNo == pi.ITRNo && p.postFlag == true))
+                || (pi.itrFlag == false && dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true))).ToList();
+
+            //var icsItems = dBContext.ICSItems
+            //    .Where(pi => dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
+            //                 dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
+            //    .ToList();
 
             return Ok(icsItems);
         }
@@ -46,13 +50,23 @@ namespace DDNAEINV.Controllers
         [Route("posted/Search")]
         public IQueryable<ICSItem> SearchActiveICSItems(string key)
         {
+
             return dBContext.ICSItems
-                .Where(pi => (dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
-                             dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
+                .Where(pi => pi.rrsepFlag == false &&
+                (pi.itrFlag == true && dBContext.ITRS.Any(p => p.ITRNo == pi.ITRNo && p.postFlag == true))
+                || (pi.itrFlag == false && dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true))
                           && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
             pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
             pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) ||
             pi.Date_Acquired.ToString().Contains(key)));
+
+            //return dBContext.ICSItems
+            //    .Where(pi => (dBContext.ICSS.Any(p => p.ICSNo == pi.ICSNo && p.postFlag == true) ||
+            //                 dBContext.ITRS.Any(r => r.ITRNo == pi.ITRNo && r.postFlag == true))
+            //              && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
+            //pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
+            //pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) ||
+            //pi.Date_Acquired.ToString().Contains(key)));
         }
 
 
@@ -87,7 +101,7 @@ namespace DDNAEINV.Controllers
         [Route("ScanExistingUnique")]
         public IQueryable<ICSItem> ScanExistingUnique(int ICSItemNo, string key)
         {
-            return dBContext.ICSItems.Where(x => x.ICSItemNo != ICSItemNo && 
+            return dBContext.ICSItems.Where(x => x.ICSItemNo != ICSItemNo &&
             (x.PropertyNo.ToString().Equals(key) || x.SerialNo.ToString().Equals(key) || x.QRCode.ToString().Equals(key)));
         }
 

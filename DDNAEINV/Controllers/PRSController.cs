@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using DDNAEINV.Model.Views;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -99,15 +100,14 @@ namespace DDNAEINV.Controllers
                         //Store into Property History
                         var propertyCards = new PropertyCard
                         {
-                            Ref = "PRS",
+                            REF = "PRS",
                             REFNoFrom = existingItem.reparFlag != null ? existingItem.REPARNo : existingItem.PARNo,
                             REFNoTo = details.PRSNo,
-                            itemNo = existingItem.PARINO,
-                            propertyNo = existingItem.PropertyNo,
-                            issuedBy = details.issuedBy,
-                            receivedBy = details.receivedBy,
-                            approvedBy = details.approvedBy,
-                            createdBy = details.createdBy,
+                            PropertyNo = existingItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            ApprovedBy = details.approvedBy,
+                            CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };
 
@@ -166,13 +166,14 @@ namespace DDNAEINV.Controllers
         [Route("Update")]
         public async Task<IActionResult> Update(string id, [FromBody] CreatePRSRequest request)
         {
+
+            var details = request.Details;
+            var updatedItems = request.updatedItems;
             // Find the PRS by id
             var prs = await dBContext.PRSS.FindAsync(id);
 
             if (prs == null)
                 return NotFound(new { message = "PRS not found." });
-
-            var details = request.Details;
 
             try
             {
@@ -191,6 +192,10 @@ namespace DDNAEINV.Controllers
 
                 // Fetch existing PRS items by PRS No
                 var prsItems = await dBContext.PARItems.Where(x => x.PRSNo == id).ToListAsync();
+                // Fetch existing CARD by PRS No
+                var existingProperties = await dBContext1.PropertyCards
+                                                   .Where(x => x.REF == "PRS" && x.REFNoTo == id)
+                                                   .ToListAsync();
 
                 // Nullify PRSNo and update prsFlag for old items
                 foreach (var prsItem in prsItems)
@@ -198,53 +203,83 @@ namespace DDNAEINV.Controllers
                     // Update the prs properties
                     prsItem.prsFlag = false;
                     prsItem.PRSNo = null;
-
-                    var cardExist = await dBContext.PropertyCards.FirstOrDefaultAsync(x => x.Ref == "PRS" && x.propertyNo == prsItem.PropertyNo);
-
-                    if (cardExist != null)
-                    {
-                        dBContext1.PropertyCards.Remove(cardExist);
-                        await dBContext1.SaveChangesAsync();
-                    }
                 }
 
 
+                // Fetch existing items by PAR No
                 var existingItems = await dBContext.PARItems.ToListAsync();
 
-                foreach (var updatedItem in request.updatedItems)
+
+                var propertyToAdd = new List<PropertyCard>();
+
+                // Update existing items or prepare to add new ones
+                foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
                     var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
 
                     if (existingItem != null)
                     {
-
                         // Update the existing item's fields with the updated data
                         existingItem.prsFlag = true;
-                        existingItem.PRSNo = details.PRSNo;
-                        // Update other fields as necessary
+                        existingItem.PRSNo = id;
+                        // Update other fields as necessary from updatedItem
+                        existingItem.Brand = updatedItem.Brand;
+                        existingItem.Model = updatedItem.Model;
+                        existingItem.Description = updatedItem.Description;
+                        existingItem.SerialNo = updatedItem.SerialNo;
+                        existingItem.Amount = updatedItem.Amount;
 
-                        //Store into Property History
-                        var propertyCards = new PropertyCard
+                    }
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        var propertyCard = new PropertyCard
                         {
-                            Ref = "PRS",
+                            REF = "PRS",
                             REFNoFrom = existingItem.reparFlag != null ? existingItem.REPARNo : existingItem.PARNo,
-                            REFNoTo = details.PRSNo,
-                            itemNo = existingItem.PARINO,
-                            propertyNo = existingItem.PropertyNo,
-                            issuedBy = details.issuedBy,
-                            receivedBy = details.receivedBy,
-                            approvedBy = details.approvedBy,
-                            createdBy = details.createdBy,
+                            REFNoTo = id,
+                            PropertyNo = updatedItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };
+                        propertyToAdd.Add(propertyCard);
 
-                        await dBContext1.PropertyCards.AddAsync(propertyCards);
-                        await dBContext1.SaveChangesAsync();
                     }
+
+                }
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
                 }
 
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
+                }
+
+
+                // Save all changes to the database at once
                 await dBContext.SaveChangesAsync();
+                await dBContext1.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -324,7 +359,7 @@ namespace DDNAEINV.Controllers
                 item.PRSNo = null;
                 item.prsFlag = false;
 
-                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.Ref == "PRS" && x.propertyNo == item.PropertyNo);
+                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.REF == "PRS" && x.PropertyNo == item.PropertyNo);
 
                 if (cardExist != null)
                 {

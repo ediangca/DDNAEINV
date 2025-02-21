@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -137,12 +138,6 @@ namespace DDNAEINV.Controllers
                     await dBContext.OPTRS.AddAsync(optr);
                     await dBContext.SaveChangesAsync();
 
-                    //return Ok(optr);
-                    //return Ok(new
-                    //{
-                    //    message = "Successfully Saved!"
-                    //});
-
                     // Fetch existing items by OPR No
                     var existingItems = await dBContext.OPRItems
                                                        .Where(x => x.oprNo == details.oprNo)
@@ -165,15 +160,14 @@ namespace DDNAEINV.Controllers
 
                             var propertyCards = new PropertyCard
                             {
-                                Ref = "OPTR",
+                                REF = "OPTR",
                                 REFNoFrom = details.oprNo.ToString(),
                                 REFNoTo = OPTRNo,
-                                itemNo = existingItem.OPRINO,
-                                propertyNo = existingItem.PropertyNo,
-                                issuedBy = details.issuedBy,
-                                receivedBy = details.receivedBy,
-                                approvedBy = details.approvedBy,
-                                createdBy = details.createdBy,
+                                PropertyNo = existingItem.PropertyNo,
+                                IssuedBy = details.issuedBy,
+                                ReceivedBy = details.receivedBy,
+                                ApprovedBy = details.approvedBy,
+                                CreatedBy = details.createdBy,
                                 Date_Created = DateTime.Now,
                             };
 
@@ -208,114 +202,6 @@ namespace DDNAEINV.Controllers
             }
         }
 
-        // localhost:port/api/OPTR/Create/
-        /**
-        [HttpPost]
-        [Route("RECreate")]
-        public async Task<IActionResult> RECreate([FromBody] CreateOPTRRequest request)
-        {
-            var details = request.Details;
-            var updatedItems = request.UpdatedItems;
-
-            if (!ModelState.IsValid)
-                return BadRequest(new { message = "OPTR is Invalid!" });
-
-
-            try
-            {
-                var sqlQuery = "SELECT dbo.GenerateOPTRID(@oprNo) AS GenOPTRID";
-
-                // SQL parameter for the type
-                //var param = new SqlParameter("@oprNo", details.oprNo+"");
-                var param = new SqlParameter("@oprNo", (details.oprNo + "").ToString());
-
-                // Execute the query and get the result
-                string OPTRNo;
-                using (var command = dBContext.Database.GetDbConnection().CreateCommand())
-                {
-                    command.CommandText = sqlQuery;
-                    command.Parameters.Add(param);
-
-                    await dBContext.Database.OpenConnectionAsync();
-
-                    var scalarResult = await command.ExecuteScalarAsync();
-                    OPTRNo = scalarResult + "".ToString();
-                }
-
-                if (!string.IsNullOrEmpty(OPTRNo))
-                {
-                    var optr = new OPTR
-                    {
-                        OPTRNo = OPTRNo,
-                        oprNo = details.oprNo,
-                        ttype = details.ttype,
-                        otype = details.otype,
-                        reason = details.reason,
-                        receivedBy = details.receivedBy,
-                        issuedBy = details.issuedBy,
-                        approvedBy = details.approvedBy,
-                        postFlag = details.postFlag,
-                        voidFlag = details.voidFlag,
-                        createdBy = details.createdBy,
-                        Date_Created = DateTime.Now,
-                        Date_Updated = DateTime.Now
-                    };
-
-                    // Save changes to the database
-                    await dBContext.OPTRS.AddAsync(optr);
-                    await dBContext.SaveChangesAsync();
-
-                    //return Ok(optr);
-                    //return Ok(new
-                    //{
-                    //    message = "Successfully Saved!"
-                    //});
-
-                    // Fetch existing items by OPR No
-                    var existingItems = await dBContext.OPRItems
-                                                       .Where(x => x.OPTRNo == details.OPTRNo)
-                                                       .ToListAsync();
-
-                    foreach (var updatedItem in updatedItems)
-                    {
-                        // Find if the updated item exists in the existing items
-                        var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
-
-                        if (existingItem != null)
-                        {
-
-                            // Update the existing item's fields with the updated data
-                            //existingItem.optrFlag = true;
-                            existingItem.OPTRNo = OPTRNo;
-                            // Update other fields as necessary
-                        }
-                    }
-
-                    await dBContext.SaveChangesAsync();
-                    return Ok(new
-                    {
-                        message = "Successfully Saved!",
-                        details = optr,
-                        items = existingItems
-                    });
-                }
-                else
-                {
-                    return BadRequest(
-                        new { message = "OPTR No could not be generated.!" });
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                return StatusCode(500, new { message = "An error occurred while saving the data.", error = ex.Message });
-            }
-        }
-        */
-
-
         // localhost:port/api/OPR/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> Retrieve(string id)
@@ -348,13 +234,13 @@ namespace DDNAEINV.Controllers
         [Route("Update")]
         public async Task<IActionResult> Update(string id, [FromBody] CreateOPTRRequest request)
         {
+            var details = request.Details;
+            var updatedItems = request.UpdatedItems;
             // Find the OPR by id
             var optr = await dBContext.OPTRS.FindAsync(id);
 
             if (optr == null)
                 return NotFound(new { message = "OPTR not found." });
-
-            OPTRDto details = request.Details;
 
             try
             {
@@ -375,6 +261,10 @@ namespace DDNAEINV.Controllers
 
                 // Fetch existing OPTR items by OPTR No
                 var optrItems = await dBContext.OPRItems.Where(x => x.OPTRNo == id).ToListAsync();
+                //// Fetch existing REPAR by CARD No
+                var existingProperties = await dBContext1.PropertyCards
+                                                   .Where(x => x.REF == "OPTR" && x.REFNoTo == id)
+                                                   .ToListAsync();
 
                 // Nullify OPTRNo and update optrFlag for old items
                 foreach (var optrItem in optrItems)
@@ -382,14 +272,18 @@ namespace DDNAEINV.Controllers
                     // Update the optr properties
                     optrItem.OPTRNo = null;
                     optrItem.optrFlag = false;
+
                 }
 
 
-                // Fetch existing items by OPR No
+                // Fetch existing items by PAR No
                 var existingItems = await dBContext.OPRItems.ToListAsync();
 
-                // Update existing items or poptre to add new ones
-                foreach (var updatedItem in request.UpdatedItems)
+
+                var propertyToAdd = new List<PropertyCard>();
+
+                // Update existing items or prepare to add new ones
+                foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
                     var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
@@ -405,11 +299,57 @@ namespace DDNAEINV.Controllers
                         existingItem.Description = updatedItem.Description;
                         existingItem.SerialNo = updatedItem.SerialNo;
                         existingItem.Amount = updatedItem.Amount;
+
                     }
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        var propertyCard = new PropertyCard
+                        {
+                            REF = "OPTR",
+                            REFNoFrom = updatedItem.oprNo.ToString(),
+                            REFNoTo = id,
+                            PropertyNo = updatedItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            CreatedBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        propertyToAdd.Add(propertyCard);
+
+
+                    }
+
+                }
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
+                }
+
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
                 }
 
                 // Save all changes to the database at once
                 await dBContext.SaveChangesAsync();
+                await dBContext1.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -530,10 +470,18 @@ namespace DDNAEINV.Controllers
             var optrItems = await dBContext.OPRItems.Where(x => x.OPTRNo == id).ToListAsync();
 
             // Update related OPR items (nullify OPTRNo and reset optrFlag)
-            foreach (var optrItem in optrItems)
+            foreach (var item in optrItems)
             {
-                optrItem.OPTRNo = null;
-                optrItem.optrFlag = false;
+                item.OPTRNo = null;
+                item.optrFlag = false;
+
+                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.REF == "OPTR" && x.REFNoTo == id && x.PropertyNo == item.PropertyNo);
+
+                if (cardExist != null)
+                {
+                    dBContext1.PropertyCards.Remove(cardExist);
+                    await dBContext1.SaveChangesAsync();
+                }
             }
 
             // Remove related property cards
@@ -636,15 +584,14 @@ namespace DDNAEINV.Controllers
 
                             var propertyCards = new PropertyCard
                             {
-                                Ref = "OPTR",
+                                REF = "OPTR",
                                 REFNoFrom = oldOPTRNo,
                                 REFNoTo = OPTRNo,
-                                itemNo = existingItem.OPRINO,
-                                propertyNo = existingItem.PropertyNo,
-                                issuedBy = details.issuedBy,
-                                receivedBy = details.receivedBy,
-                                approvedBy = details.approvedBy,
-                                createdBy = details.createdBy,
+                                PropertyNo = existingItem.PropertyNo,
+                                IssuedBy = details.issuedBy,
+                                ReceivedBy = details.receivedBy,
+                                ApprovedBy = details.approvedBy,
+                                CreatedBy = details.createdBy,
                                 Date_Created = DateTime.Now,
                             };
 

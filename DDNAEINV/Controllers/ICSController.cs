@@ -5,6 +5,7 @@ using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -13,10 +14,12 @@ namespace DDNAEINV.Controllers
     public class ICSController : ControllerBase
     {
         private readonly ApplicationDBContext dBContext;
+        private readonly ApplicationDBContext dBContext1;
 
         public ICSController(ApplicationDBContext dBContext)
         {
             this.dBContext = dBContext;
+            this.dBContext1 = dBContext;
 
         }
         // localhost:port/api/PAR
@@ -81,7 +84,7 @@ namespace DDNAEINV.Controllers
                 await dBContext.ICSItems.AddRangeAsync(request.icsItems);
                 await dBContext.SaveChangesAsync();
 
-                var existingItems = await dBContext.ICSItems
+                var existingItems = await dBContext1.ICSItems
                                                     .Where(x => x.ICSNo == i.ICSNo)
                                                     .ToListAsync();
 
@@ -93,17 +96,16 @@ namespace DDNAEINV.Controllers
                     {
                         var propertyCards = new PropertyCard
                         {
-                            Ref = "ICS",
+                            REF = "ICS",
                             REFNoFrom = i.ICSNo,
-                            itemNo = existingItem.ICSItemNo,
-                            propertyNo = existingItem.PropertyNo,
-                            issuedBy = i.issuedBy,
-                            receivedBy = i.receivedBy,
-                            createdBy = i.createdBy,
+                            PropertyNo = existingItem.PropertyNo,
+                            IssuedBy = i.issuedBy,
+                            ReceivedBy = i.receivedBy,
+                            CreatedBy = i.createdBy,
                             Date_Created = DateTime.Now,
                         };
-                        await dBContext.PropertyCards.AddAsync(propertyCards);
-                        await dBContext.SaveChangesAsync();
+                        await dBContext1.PropertyCards.AddAsync(propertyCards);
+                        await dBContext1.SaveChangesAsync();
                     }
                 }
 
@@ -151,10 +153,13 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/ICS/Update/
         [HttpPut]
         [Route("Update")]
-        public async Task<IActionResult> Update(string icsNo, [FromBody] ICSDetails icsDetails)
+        public async Task<IActionResult> Update(string id, [FromBody] ICSDetails request)
         {
+            var details = request.Details;
+            var updatedItems = request.icsItems;
+
             // Find the ICS by ID
-            var ics = await dBContext.ICSS.FindAsync(icsNo);
+            var ics = await dBContext.ICSS.FindAsync(id);
 
             if (ics == null)
                 return NotFound(new { message = "ICS not found." });
@@ -162,17 +167,17 @@ namespace DDNAEINV.Controllers
             try
             {
                 // Check if ICS with the same ICSNo exists
-                var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo != icsNo && x.ICSNo == icsDetails.Details.ICSNo);
+                var icsExist = await dBContext.ICSS.FirstOrDefaultAsync(x => x.ICSNo != id && x.ICSNo == details.ICSNo);
 
                 if (icsExist != null)
                     return BadRequest(new { message = "ICS already exists!" });
 
                 // Update ICS properties
-                ics.entityName = icsDetails.Details.entityName;
-                ics.fund = icsDetails.Details.fund;
-                ics.receivedBy = icsDetails.Details.receivedBy;
-                ics.issuedBy = icsDetails.Details.issuedBy;
-                ics.createdBy = icsDetails.Details.createdBy;
+                ics.entityName = details.entityName;
+                ics.fund = details.fund;
+                ics.receivedBy = details.receivedBy;
+                ics.issuedBy = details.issuedBy;
+                ics.createdBy = details.createdBy;
                 ics.Date_Updated = DateTime.Now;
 
                 // Save changes to the database
@@ -180,13 +185,18 @@ namespace DDNAEINV.Controllers
 
                 // Retrieve existing ICS items for the given ICSNo
                 var existingItems = await dBContext.ICSItems
-                                               .Where(x => x.ICSNo == icsDetails.Details.ICSNo)
+                                               .Where(x => x.ICSNo == details.ICSNo)
                                                .ToListAsync();
+                // Fetch existing CARD by PAR No
+                var existingProperties = await dBContext1.PropertyCards
+                                                   .Where(x => x.REF == "ICS" && x.REFNoFrom == id)
+                                                   .ToListAsync();
 
                 // Prepare a list to track new items to be added
                 var itemsToAdd = new List<ICSItem>();
+                var propertyToAdd = new List<PropertyCard>();
 
-                foreach (var updatedItem in icsDetails.icsItems)
+                foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
                     var existingItem = existingItems.FirstOrDefault(x => x.ICSItemNo == updatedItem.ICSItemNo);
@@ -226,10 +236,45 @@ namespace DDNAEINV.Controllers
                         };
                         itemsToAdd.Add(newICSItem);
                     }
+
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        //var cardItemExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.PropertyNo == updatedItem.PropertyNo);
+                        //if (cardItemExist != null)
+                        //    return BadRequest(new { message = $"Property #{updatedItem.PropertyNo} already exists!" });
+
+                        var propertyCard = new PropertyCard
+                        {
+                            REF = "ICS",
+                            REFNoFrom = updatedItem.ICSNo,
+                            PropertyNo = updatedItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            CreatedBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        propertyToAdd.Add(propertyCard);
+
+
+                    }
                 }
 
                 // Identify the items that need to be deleted (those in existingItems but not in updatedItems)
-                var propertyNosInUpdatedItems = icsDetails.icsItems.Select(i => i.ICSItemNo).ToHashSet();
+                var propertyNosInUpdatedItems = updatedItems.Select(i => i.ICSItemNo).ToHashSet();
                 var itemsToDelete = existingItems.Where(e => !propertyNosInUpdatedItems.Contains(e.ICSItemNo)).ToList();
 
                 // Remove the items that are not in updatedItems
@@ -243,8 +288,21 @@ namespace DDNAEINV.Controllers
                     await dBContext.ICSItems.AddRangeAsync(itemsToAdd);
                 }
 
-                // Save all changes (updates and additions)
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
+                }
+
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
+                }
+
                 await dBContext.SaveChangesAsync();
+                await dBContext1.SaveChangesAsync();
 
                 return Ok(new { message = "Successfully Updated!" });
             }
@@ -321,6 +379,14 @@ namespace DDNAEINV.Controllers
             {
                 dBContext.ICSItems.RemoveRange(existingItems);
                 dBContext.SaveChanges();
+
+                var cardExist = await dBContext1.PropertyCards.Where(x => x.REF == "ICS" && x.REFNoFrom == id).ToListAsync();
+
+                if (cardExist.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(cardExist);
+                    dBContext1.SaveChanges();
+                }
             }
 
             return Ok(new

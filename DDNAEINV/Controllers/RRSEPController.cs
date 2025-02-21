@@ -100,15 +100,14 @@ namespace DDNAEINV.Controllers
                         //Store into Property History
                         var propertyCards = new PropertyCard
                         {
-                            Ref = "PRS",
+                            REF = "PRS",
                             REFNoFrom = existingItem.itrFlag != null ? existingItem.ITRNo : existingItem.ICSNo,
                             REFNoTo = details.RRSEPNo,
-                            itemNo = existingItem.ICSItemNo,
-                            propertyNo = existingItem.PropertyNo,
-                            issuedBy = details.issuedBy,
-                            receivedBy = details.receivedBy,
-                            approvedBy = details.approvedBy,
-                            createdBy = details.createdBy,
+                            PropertyNo = existingItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            ApprovedBy = details.approvedBy,
+                            CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };
 

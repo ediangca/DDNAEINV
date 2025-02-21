@@ -29,7 +29,6 @@ namespace DDNAEINV.Controllers
 
             var itemGroups = dBContext.ListOfItem.ToList()
                    .OrderByDescending(x => x.Date_Created)
-                   .Take(10)
                    .ToList();
 
             return Ok(itemGroups);

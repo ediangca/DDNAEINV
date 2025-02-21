@@ -10,6 +10,8 @@ namespace DDNAEINV.Model.Details
         public string? ITRNo { get; set; } = string.Empty;
         public required string ICSNo { get; set; }
         public required string IID { get; set; }
+        public required string Brand { get; set; }
+        public required string Model { get; set; }
         public required string Description { get; set; }
         public string? SerialNo { get; set; } = string.Empty;
         public string? PropertyNo { get; set; } = string.Empty;

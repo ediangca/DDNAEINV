@@ -35,9 +35,14 @@ namespace DDNAEINV.Controllers
         {
 
             var paritems = dBContext.PARItems
-                .Where(pi => dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) ||
-                             dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
-                .ToList();
+                .Where(pi => pi.prsFlag == false && (pi.reparFlag == true && dBContext.REPARS.Any(p => p.REPARNo == pi.REPARNo && p.postFlag == true))
+                || (pi.reparFlag == false && dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true))).ToList();
+
+
+            //paritems = dBContext.PARItems
+            //    .Where(pi => pi.reparFlag == false && dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) &&
+            //    pi.reparFlag == true && dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true)).ToList();
+
 
             return Ok(paritems);
         }
@@ -48,8 +53,8 @@ namespace DDNAEINV.Controllers
         public IQueryable<ParItem> SearchActivePARItems(string key)
         {
             return dBContext.PARItems
-                .Where(pi => (dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true) ||
-                             dBContext.REPARS.Any(r => r.REPARNo == pi.REPARNo && r.postFlag == true))
+                .Where(pi => pi.prsFlag == false && (pi.reparFlag == true && dBContext.REPARS.Any(p => p.REPARNo == pi.REPARNo && p.postFlag == true))
+                || (pi.reparFlag == false && dBContext.PARS.Any(p => p.parNo == pi.PARNo && p.postFlag == true))
                           && (pi.Brand.Contains(key) || pi.Model.ToString().Contains(key) ||
             pi.Description.Contains(key) || pi.SerialNo.ToString().Contains(key) ||
             pi.PropertyNo.ToString().Contains(key) || pi.QRCode.ToString().Contains(key) || pi.Date_Acquired.ToString().Contains(key)));
@@ -162,6 +167,26 @@ namespace DDNAEINV.Controllers
             return Ok(items);
         }
 
+        // localhost:port/api/ICSITEM/ITRNO/{id}
+        [HttpGet("PTRNO/{id}")]
+        public async Task<IActionResult> RetrieveByPTRNO(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new { message = "PTR No is required." });
+            }
+
+            // Find the ITR Item by id asynchronously
+            var ptrItems = await dBContext.PARItems
+                                           .Where(x => x.REPARNo == id)
+                                           .ToListAsync();
+
+
+            if (ptrItems == null || ptrItems.Count == 0)
+                return BadRequest(new { message = "No items found for the PTR # " + id });
+
+            return Ok(ptrItems);
+        }
 
         // localhost:port/api/PARITEM/QRCode/{id}
         [HttpGet("QRCode/{qrcode}")]
@@ -262,6 +287,7 @@ namespace DDNAEINV.Controllers
             {
                 // Find if the updated item exists in the existing items
                 var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+
 
                 if (existingItem != null)
                 {
