@@ -194,6 +194,46 @@ namespace DDNAEINV.Controllers
         }
         // localhost:port/api/UserAccount/Update/Password/
         [HttpPut]
+        [Route("Update/ForgetPassword")]
+        public IActionResult ForgetPassword(string id, ChangePassDto details)
+        {
+
+            if (details.OldPassword == null)
+                return BadRequest(new { message = "Please fill Old Password!" });
+
+            var hasher = new PasswordHasher();
+            Debug.WriteLine("HashPassword: " + hasher.HashPassword(details.NewPassword));
+
+            // Find the User Account by id
+            var userAccount = dBContext.UserAccounts.Find(id);
+
+
+            if (userAccount == null)
+                return BadRequest(new { message = "Please fill required fields!" });
+
+
+            if (!hasher.VerifyPassword(userAccount.Password, details.OldPassword))
+                return BadRequest(new { message = "Invalid Old Password!" });
+
+            // Update the properties
+            userAccount.Password = hasher.HashPassword(details.NewPassword);
+
+            //userAccount.Password = details.Password;
+
+            userAccount.Date_Updated = DateTime.Now;
+
+            // Save changes to the database
+            dBContext.SaveChanges();
+
+            //return Ok(userAccount);
+            return Ok(new
+            {
+                message = "Password Successfully Changed!"
+            });
+        }
+
+        // localhost:port/api/UserAccount/Update/Password/
+        [HttpPut]
         [Route("Update/Password")]
         public IActionResult UpdatePassword(string id, ChangePassDto details)
         {
@@ -207,6 +247,7 @@ namespace DDNAEINV.Controllers
 
             if (userAccount == null)
                 return BadRequest(new { message = "Please fill required fields!" });
+
 
             if (!hasher.VerifyPassword(userAccount.Password, details.OldPassword))
                 return BadRequest(new { message = "Invalid Old Password!" });
