@@ -249,8 +249,8 @@ namespace DDNAEINV.Controllers
                 return BadRequest(new { message = "Please fill required fields!" });
 
 
-            if (!hasher.VerifyPassword(userAccount.Password, details.OldPassword))
-                return BadRequest(new { message = "Invalid Old Password!" });
+            //if (!hasher.VerifyPassword(userAccount.Password, details.OldPassword))
+            //    return BadRequest(new { message = "Invalid Old Password!" });
 
             // Update the properties
             userAccount.Password = hasher.HashPassword(details.NewPassword);

@@ -82,31 +82,34 @@ namespace DDNAEINV.Controllers
                 await dBContext.OPRS.AddAsync(opr);
                 await dBContext.SaveChangesAsync();
 
+                //await dBContext.OPRItems.AddRangeAsync(request.oprItems);
+                //await dBContext.SaveChangesAsync();
 
-                var existingItems = await dBContext1.OPRItems
-                                                    .Where(x => x.oprNo == o.oprNo)
-                                                    .ToListAsync();
 
-                foreach (var item in request.oprItems)
-                {
-                    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == item.PropertyNo);
+                //var existingItems = await dBContext1.OPRItems
+                //                                    .Where(x => x.oprNo == o.oprNo)
+                //                                    .ToListAsync();
 
-                    if (existingItem != null)
-                    {
-                        var propertyCards = new PropertyCard
-                        {
-                            REF = "OPR",
-                            REFNoFrom = o.oprNo.ToString(),
-                            PropertyNo = existingItem.PropertyNo,
-                            IssuedBy = o.issuedBy,
-                            ReceivedBy = o.receivedBy,
-                            CreatedBy = o.createdBy,
-                            Date_Created = DateTime.Now,
-                        };
-                        await dBContext.PropertyCards.AddAsync(propertyCards);
-                        await dBContext.SaveChangesAsync();
-                    }
-                }
+                //foreach (var item in request.oprItems)
+                //{
+                //    var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == item.PropertyNo);
+
+                //    if (existingItem != null)
+                //    {
+                //        var propertyCards = new PropertyCard
+                //        {
+                //            REF = "OPR",
+                //            REFNoFrom = o.oprNo.ToString(),
+                //            PropertyNo = existingItem.PropertyNo,
+                //            IssuedBy = o.issuedBy,
+                //            ReceivedBy = o.receivedBy,
+                //            CreatedBy = o.createdBy,
+                //            Date_Created = DateTime.Now,
+                //        };
+                //        await dBContext.PropertyCards.AddAsync(propertyCards);
+                //        await dBContext.SaveChangesAsync();
+                //    }
+                //}
 
                 //return Ok(opr);
                 return Ok(new
@@ -204,7 +207,7 @@ namespace DDNAEINV.Controllers
                     return BadRequest(new { message = "OPR already exist!" });
 
                 // Update the properties
-                par.oprNo = details.oprNo;
+                par.oprNo = id;
                 par.itemSource = details.itemSource;
                 par.ownership = details.ownership;
                 par.receivedBy = details.receivedBy;

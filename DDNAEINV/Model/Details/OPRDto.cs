@@ -5,7 +5,7 @@ namespace DDNAEINV.Model.Entities
 {
     public class OPRDto
     {
-        public required int oprNo { get; set; } = 0;
+        public int? oprNo { get; set; } = 0;
         public required string itemSource { get; set; }
         public required string ownership { get; set; }
         public required string receivedBy { get; set; }

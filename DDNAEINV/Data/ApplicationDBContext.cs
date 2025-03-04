@@ -89,6 +89,9 @@ namespace DDNAEINV.Data
         public DbSet<ICSOfficesVw> ListICSOffices { get; set; }
         public DbSet<ITROfficesVw> ListITROffices { get; set; }
         public DbSet<RRSEPOfficesVw> ListRRSEPOffices { get; set; }
+        public DbSet<OPROfficesVw> ListOPROffices { get; set; }
+        public DbSet<OPTROfficesVw> ListOPTROffices { get; set; }
+        public DbSet<OPRROfficesVw> ListOPRROffices { get; set; }
         public DbSet<Above50KOffices> ListofAbove50KOffices { get; set; }
         public DbSet<Below50KOffices> ListofBelow50KOffices { get; set; }
 
@@ -99,10 +102,14 @@ namespace DDNAEINV.Data
         public DbSet<REPARItemsDetailsVw> ListOfREPARByOffice { get; set; } //List of REPAR Items Details
         public DbSet<PRSItemsDetailsVw> ListOfPRSByOffice { get; set; } //List of PRS Items Details
 
-
         public DbSet<ICSItemsDetailsVw> ListOfICSByOffice { get; set; } //List of ICS Items Details
         public DbSet<ITRItemsDetailsVw> ListOfITRByOffice { get; set; } //List of ITR Items Details
         public DbSet<RRSEPItemsDetailsVw> ListOfRRSEPByOffice { get; set; } //List of RRSEP Items Details
+
+        public DbSet<OPRItemsDetailsVw> ListOfOPRByOffice { get; set; } //List of OPR Items Details
+        public DbSet<OPTRItemsDetailsVw> ListOfOPTRByOffice { get; set; } //List of OPTR Items Details
+        public DbSet<OPRRItemsDetailsVw> ListOfOPRRByOffice { get; set; } //List of OPRR Items Details
+
         public DbSet<SummaryItemsA50kDetailsVw> ListOfAbove50KByOffice { get; set; } //List of Above 50K Items Details
         public DbSet<SummaryItemsB50kDetailsVw> ListOfBelow50KByOffice { get; set; } //List of Below 50K Items Details
 
@@ -437,6 +444,23 @@ namespace DDNAEINV.Data
             {
                 entity.HasNoKey();
             });
+            modelBuilder.Entity<OPROfficesVw>().ToView("ListOPROffices");
+            modelBuilder.Entity<OPROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<OPTROfficesVw>().ToView("ListOPTROffices");
+            modelBuilder.Entity<OPTROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<OPRROfficesVw>().ToView("ListOPRROffices");
+            modelBuilder.Entity<OPRROfficesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
 
             modelBuilder.Entity<PARItemsDetailsVw>().ToView("ListOfPARByOffice");
             modelBuilder.Entity<PARItemsDetailsVw>(entity =>
@@ -470,6 +494,21 @@ namespace DDNAEINV.Data
                 entity.HasNoKey();
             });
 
+            modelBuilder.Entity<OPRItemsDetailsVw>().ToView("ListOfOPRByOffice");
+            modelBuilder.Entity<OPRItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<OPTRItemsDetailsVw>().ToView("ListOfOPTRByOffice");
+            modelBuilder.Entity<OPTRItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+            modelBuilder.Entity<OPRRItemsDetailsVw>().ToView("ListOfOPRRByOffice");
+            modelBuilder.Entity<OPRRItemsDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
 
             modelBuilder.Entity<Above50KOffices>().ToView("ListofAbove50KOffices");
             modelBuilder.Entity<Above50KOffices>(entity =>

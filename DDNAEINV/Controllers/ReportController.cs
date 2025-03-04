@@ -101,6 +101,15 @@ namespace DDNAEINV.Controllers
                     case "rrsep":
                         result = dBContext.ListRRSEPOffices.OrderBy(x => x.Office);
                         break;
+                    case "opr":
+                        result = dBContext.ListOPROffices.OrderBy(x => x.Office);
+                        break;
+                    case "optr":
+                        result = dBContext.ListOPTROffices.OrderBy(x => x.Office);
+                        break;
+                    case "oprr":
+                        result = dBContext.ListOPRROffices.OrderBy(x => x.Office);
+                        break;
                     case "sopa5":
                         result = dBContext.ListofAbove50KOffices.OrderBy(x => x.Office);
                         break;
@@ -157,7 +166,6 @@ namespace DDNAEINV.Controllers
             return dBContext.ListOfPRSByOffice;
         }
 
-
         // localhost:port/api/Report/ICS/{office}
         [HttpGet]
         [Route("ICS")]
@@ -192,6 +200,42 @@ namespace DDNAEINV.Controllers
                 return dBContext.ListOfRRSEPByOffice.Where(x => x.ReceivedByOffice == office);
             }
             return dBContext.ListOfRRSEPByOffice;
+        }
+
+        // localhost:port/api/Report/OPR/{office}
+        [HttpGet]
+        [Route("OPR")]
+        public IQueryable<OPRItemsDetailsVw> ListOfOPRByOffice(string? office)
+        {
+            if (office != null)
+            {
+                return dBContext.ListOfOPRByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfOPRByOffice;
+        }
+
+        // localhost:port/api/Report/OPTR/{office}
+        [HttpGet]
+        [Route("OPTR")]
+        public IQueryable<OPTRItemsDetailsVw> ListOfOPTRByOffice(string? office)
+        {
+            if (office != null)
+            {
+                return dBContext.ListOfOPTRByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfOPTRByOffice;
+        }
+
+        // localhost:port/api/Report/OPRR/{office}
+        [HttpGet]
+        [Route("OPRR")]
+        public IQueryable<OPRRItemsDetailsVw> ListOfOPRRByOffice(string? office)
+        {
+            if (office != null)
+            {
+                return dBContext.ListOfOPRRByOffice.Where(x => x.ReceivedByOffice == office);
+            }
+            return dBContext.ListOfOPRRByOffice;
         }
 
         // localhost:port/api/Report/SOPA5/{office}
