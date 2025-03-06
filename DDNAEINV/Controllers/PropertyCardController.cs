@@ -5,6 +5,7 @@ using DDNAEINV.Model.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Diagnostics;
 using System.Linq;
 
 
@@ -52,34 +53,40 @@ namespace DDNAEINV.Controllers
         [Route("PropertyList")]
         public IQueryable<PropertyDetailsVw> PropertyList(string category, string key)
         {
-            switch (category.ToLower())
-            {
+            IQueryable<PropertyDetailsVw> properties;
+
+            Debug.Print("Category >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + category);
+
+            switch (category) { 
                 case "Above50k":
 
-                    return dBContext.ListOfProperty.Where(x =>
-                    x.REF.Equals("PAR") &&
+                    properties = dBContext.ListOfProperty.Where(x =>
+                    x.REF == "PAR" &&
                     (x.Description.ToString().ToLower().Contains(key) || x.PropertyNo.ToString().ToLower().Contains(key) || x.QRCode.ToString().ToLower().Contains(key)));
 
+                    break;
                 case "Below50k":
 
-                    return dBContext.ListOfProperty.Where(x =>
-                    x.REF.Equals("ICS") &&
+                    properties = dBContext.ListOfProperty.Where(x =>
+                    x.REF == "ICS" &&
                     (x.Description.ToString().ToLower().Contains(key) || x.PropertyNo.ToString().ToLower().Contains(key) || x.QRCode.ToString().ToLower().Contains(key)));
 
+                    break;
 
                 case "Others":
 
-                    return dBContext.ListOfProperty.Where(x =>
-                    x.REF.Equals("OPR") &&
+                    properties = dBContext.ListOfProperty.Where(x =>
+                    x.REF == "OPR" &&
                     (x.Description.ToString().ToLower().Contains(key) || x.PropertyNo.ToString().ToLower().Contains(key) || x.QRCode.ToString().ToLower().Contains(key)));
 
-
+                    break;
                 default:
-
-
-                    return dBContext.ListOfProperty.Where(x =>
+                    properties = dBContext.ListOfProperty.Where(x =>
                     x.Description.ToString().ToLower().Contains(key) || x.PropertyNo.ToString().ToLower().Contains(key) || x.QRCode.ToString().ToLower().Contains(key));
+                    break;
             }
+
+            return properties;
 
         }
 

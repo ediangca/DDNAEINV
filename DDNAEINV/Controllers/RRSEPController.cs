@@ -4,7 +4,6 @@ using DDNAEINV.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Data.Entity;
 
 namespace DDNAEINV.Controllers
 {

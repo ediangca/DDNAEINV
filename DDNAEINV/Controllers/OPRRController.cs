@@ -304,7 +304,7 @@ namespace DDNAEINV.Controllers
                 //return Ok(opr);
                 return Ok(new
                 {
-                    message = "OPRR # 000" + id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
+                    message = id + " " + (postVal ? "Successfully Posted!" : "Successfully Unposted!")
                 });
             }
             catch (Exception ex)
