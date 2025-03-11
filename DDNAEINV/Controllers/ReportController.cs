@@ -161,7 +161,7 @@ namespace DDNAEINV.Controllers
         {
             if (office != null)
             {
-                return dBContext.ListOfPRSByOffice.Where(x => x.ReceivedByOffice == office);
+                return dBContext.ListOfPRSByOffice.Where(x => x.IssuedByOffice == office);
             }
             return dBContext.ListOfPRSByOffice;
         }
@@ -197,7 +197,7 @@ namespace DDNAEINV.Controllers
         {
             if (office != null)
             {
-                return dBContext.ListOfRRSEPByOffice.Where(x => x.ReceivedByOffice == office);
+                return dBContext.ListOfRRSEPByOffice.Where(x => x.IssuedByOffice == office);
             }
             return dBContext.ListOfRRSEPByOffice;
         }
@@ -233,7 +233,7 @@ namespace DDNAEINV.Controllers
         {
             if (office != null)
             {
-                return dBContext.ListOfOPRRByOffice.Where(x => x.ReceivedByOffice == office);
+                return dBContext.ListOfOPRRByOffice.Where(x => x.IssuedByOffice == office);
             }
             return dBContext.ListOfOPRRByOffice;
         }
