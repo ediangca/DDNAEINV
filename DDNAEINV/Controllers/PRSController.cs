@@ -101,7 +101,7 @@ namespace DDNAEINV.Controllers
                         var propertyCards = new PropertyCard
                         {
                             REF = "PRS",
-                            REFNoFrom = existingItem.reparFlag != null ? existingItem.REPARNo : existingItem.PARNo,
+                            REFNoFrom = existingItem.REPARNo != null || existingItem.reparFlag == true ? existingItem.REPARNo : existingItem.PARNo,
                             REFNoTo = details.PRSNo,
                             PropertyNo = existingItem.PropertyNo,
                             IssuedBy = details.issuedBy,
@@ -238,8 +238,10 @@ namespace DDNAEINV.Controllers
                     {
 
                         existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.REFNoFrom = existingItem.reparFlag == true ? existingItem.REPARNo : existingItem.PARNo;
                         existingProperty.IssuedBy = details.issuedBy;
                         existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.ApprovedBy = details.approvedBy;
                         existingProperty.CreatedBy = details.createdBy;
                         existingProperty.Date_Created = DateTime.Now;
                     }
@@ -250,11 +252,12 @@ namespace DDNAEINV.Controllers
                         var propertyCard = new PropertyCard
                         {
                             REF = "PRS",
-                            REFNoFrom = existingItem.reparFlag != null ? existingItem.REPARNo : existingItem.PARNo,
+                            REFNoFrom = existingItem.reparFlag == true ? existingItem.REPARNo : existingItem.PARNo,
                             REFNoTo = id,
                             PropertyNo = updatedItem.PropertyNo,
                             IssuedBy = details.issuedBy,
                             ReceivedBy = details.receivedBy,
+                            ApprovedBy = details.approvedBy,
                             CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };

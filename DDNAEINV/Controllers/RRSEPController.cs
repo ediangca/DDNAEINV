@@ -4,6 +4,7 @@ using DDNAEINV.Model.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -99,8 +100,8 @@ namespace DDNAEINV.Controllers
                         //Store into Property History
                         var propertyCards = new PropertyCard
                         {
-                            REF = "PRS",
-                            REFNoFrom = existingItem.itrFlag != null ? existingItem.ITRNo : existingItem.ICSNo,
+                            REF = "RRSEP",
+                            REFNoFrom = existingItem.itrFlag == true ? existingItem.ITRNo : existingItem.ICSNo,
                             REFNoTo = details.RRSEPNo,
                             PropertyNo = existingItem.PropertyNo,
                             IssuedBy = details.issuedBy,
@@ -172,6 +173,7 @@ namespace DDNAEINV.Controllers
                 return NotFound(new { message = "RRSEP not found." });
 
             var details = request.Details;
+            var updatedItems = request.updatedItems;
 
             try
             {
@@ -189,19 +191,31 @@ namespace DDNAEINV.Controllers
                 // Save RRSEP changes
                 await dBContext.SaveChangesAsync();
 
-                // Fetch existing RRSEP items by PRS No
+                // Fetch existing REPAR items by RRSEP No
                 var rrsepItems = await dBContext.ICSItems.Where(x => x.RRSEPNo == id).ToListAsync();
 
-                // Nullify RRSEPNo and update prsFlag for old items
-                foreach (var item in rrsepItems)
+                // Fetch existing CARD by RRSEP No
+                var existingProperties = await dBContext1.PropertyCards
+                                                   .Where(x => x.REF == "RRSEP" && x.REFNoTo == id)
+                                                   .ToListAsync();
+
+                // Nullify REPARNo and update reparFlag for old items
+                foreach (var rrsepItem in rrsepItems)
                 {
-                    item.rrsepFlag = false;
-                    item.RRSEPNo = null;
+                    // Update the repar properties
+                    rrsepItem.RRSEPNo = null;
+                    rrsepItem.rrsepFlag = false;
+
                 }
 
+                // Fetch existing items by RRSEP No
                 var existingItems = await dBContext.ICSItems.ToListAsync();
 
-                foreach (var updatedItem in request.updatedItems)
+
+                var propertyToAdd = new List<PropertyCard>();
+
+                // Update existing items or prepare to add new ones
+                foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
                     var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
@@ -210,12 +224,63 @@ namespace DDNAEINV.Controllers
                     {
                         // Update the existing item's fields with the updated data
                         existingItem.rrsepFlag = true;
-                        existingItem.RRSEPNo = details.RRSEPNo;
-                        // Update other fields as necessary
+                        existingItem.RRSEPNo = id;
+                        // Update other fields as necessary from updatedItem
+                        existingItem.Brand = updatedItem.Brand;
+                        existingItem.Model = updatedItem.Model;
+                        existingItem.Description = updatedItem.Description;
+                        existingItem.SerialNo = updatedItem.SerialNo;
+                        existingItem.Amount = updatedItem.Amount;
+
                     }
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.REFNoFrom = existingItem.itrFlag == true ? existingItem.ITRNo : existingItem.ICSNo;
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.ApprovedBy = details.approvedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        var propertyCard = new PropertyCard
+                        {
+                            REF = "RRSEP",
+                            REFNoFrom = existingItem.itrFlag == true ? existingItem.ITRNo : existingItem.ICSNo,
+                            REFNoTo = id,
+                            PropertyNo = updatedItem.PropertyNo,
+                            IssuedBy = details.issuedBy,
+                            ReceivedBy = details.receivedBy,
+                            ApprovedBy = details.approvedBy,
+                            CreatedBy = details.createdBy,
+                            Date_Created = DateTime.Now,
+                        };
+                        propertyToAdd.Add(propertyCard);
+
+                    }
+
+                }
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
                 }
 
-                await dBContext.SaveChangesAsync();
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
+                }
+
 
                 return Ok(new
                 {

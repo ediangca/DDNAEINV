@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using DDNAEINV.Model.Views;
+using System.Diagnostics;
 
 namespace DDNAEINV.Controllers
 {
@@ -119,7 +120,7 @@ namespace DDNAEINV.Controllers
                         var propertyCards = new PropertyCard
                         {
                             REF = "OPRR",
-                            REFNoFrom = existingItem.OPTRNo != null ? existingItem.OPTRNo: existingItem.oprNo.ToString(),
+                            REFNoFrom = existingItem.optrFlag == true ? existingItem.OPTRNo : existingItem.oprNo.ToString(),
                             REFNoTo = OPRRNo,
                             PropertyNo = existingItem.PropertyNo,
                             IssuedBy = details.issuedBy,
@@ -191,6 +192,7 @@ namespace DDNAEINV.Controllers
                 return NotFound(new { message = "OPRR No. not found." });
 
             var details = request.Details;
+            var updatedItems = request.updatedItems;
 
             try
             {
@@ -207,66 +209,104 @@ namespace DDNAEINV.Controllers
                 // Save OPRR changes
                 await dBContext.SaveChangesAsync();
 
-                // Fetch existing OPR items by OPRR No
-                var opritems = await dBContext.OPRItems.Where(x => x.OPRRNo == id).ToListAsync();
-                var cardProperties = await dBContext1.PropertyCards
+
+
+                // Fetch existing OPRR items by OPRR No
+                var optrItems = await dBContext.OPRItems.Where(x => x.OPRRNo == id).ToListAsync();
+                //// Fetch existing REPAR by CARD No
+                var existingProperties = await dBContext1.PropertyCards
                                                    .Where(x => x.REF == "OPRR" && x.REFNoTo == id)
                                                    .ToListAsync();
 
                 // Nullify OPRRNo and update oprrFlag for old items
-                foreach (var oprItem in opritems)
+                foreach (var optrItem in optrItems)
                 {
-                    // Update the OPRR properties
-
-                    var existingProperty = cardProperties.FirstOrDefault(x => x.PropertyNo == oprItem.PropertyNo);
-                    if (existingProperty != null)
-                    {
-
-                        existingProperty.PropertyNo = oprItem.PropertyNo;
-                        existingProperty.IssuedBy = details.issuedBy;
-                        existingProperty.ReceivedBy = details.receivedBy;
-                        existingProperty.CreatedBy = details.createdBy;
-                        existingProperty.Date_Created = DateTime.Now;
-                    }
+                    // Update the optr properties
+                    optrItem.OPRRNo = null;
+                    optrItem.oprrFlag = false;
 
                 }
 
 
+                // Fetch existing items by OPR No
                 var existingItems = await dBContext.OPRItems.ToListAsync();
 
-                foreach (var updatedItem in request.updatedItems)
+
+                var propertyToAdd = new List<PropertyCard>();
+
+                // Update existing items or prepare to add new ones
+                foreach (var updatedItem in updatedItems)
                 {
                     // Find if the updated item exists in the existing items
                     var existingItem = existingItems.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
 
                     if (existingItem != null)
                     {
-
                         // Update the existing item's fields with the updated data
                         existingItem.oprrFlag = true;
-                        existingItem.OPRRNo = details.OPRRNo;
-                        // Update other fields as necessary
+                        existingItem.OPRRNo = id;
+                        // Update other fields as necessary from updatedItem
+                        existingItem.Brand = updatedItem.Brand;
+                        existingItem.Model = updatedItem.Model;
+                        existingItem.Description = updatedItem.Description;
+                        existingItem.SerialNo = updatedItem.SerialNo;
+                        existingItem.Amount = updatedItem.Amount;
 
-                        var propertyCards = new PropertyCard
+                    }
+
+                    // Find if the updated item exists in the existing property
+                    var existingProperty = existingProperties.FirstOrDefault(x => x.PropertyNo == updatedItem.PropertyNo);
+                    if (existingProperty != null)
+                    {
+
+                        existingProperty.PropertyNo = updatedItem.PropertyNo;
+                        existingProperty.REFNoFrom = existingItem.optrFlag == true ? existingItem.OPTRNo : existingItem.oprNo.ToString();
+                        existingProperty.IssuedBy = details.issuedBy;
+                        existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.ApprovedBy = details.approvedBy;
+                        existingProperty.CreatedBy = details.createdBy;
+                        existingProperty.Date_Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        Debug.Print("TO ADD PROPERTY CARD " + updatedItem.PropertyNo);
+
+                        var propertyCard = new PropertyCard
                         {
                             REF = "OPRR",
-                            REFNoFrom = existingItem.OPTRNo != null ? existingItem.OPTRNo : existingItem.oprNo.ToString(),
-                            REFNoTo = existingItem.OPRRNo,
-                            PropertyNo = existingItem.PropertyNo,
+                            REFNoFrom = existingItem.optrFlag == true ? existingItem.OPTRNo : existingItem.oprNo.ToString(),
+                            REFNoTo = id,
+                            PropertyNo = updatedItem.PropertyNo,
                             IssuedBy = details.issuedBy,
                             ReceivedBy = details.receivedBy,
                             ApprovedBy = details.approvedBy,
                             CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };
+                        propertyToAdd.Add(propertyCard);
 
-                        await dBContext1.PropertyCards.AddAsync(propertyCards);
-                        await dBContext1.SaveChangesAsync();
+
                     }
+
+                }
+                var propertyNosInUpdatedItems1 = updatedItems.Select(i => i.PropertyNo).ToHashSet();
+                var itemsToDelete1 = existingProperties.Where(e => !propertyNosInUpdatedItems1.Contains(e.PropertyNo)).ToList();
+
+                if (itemsToDelete1.Count > 0)
+                {
+                    dBContext1.PropertyCards.RemoveRange(itemsToDelete1);
+                }
+
+                if (propertyToAdd.Count > 0)
+                {
+                    await dBContext1.PropertyCards.AddRangeAsync(propertyToAdd);
                 }
 
                 await dBContext.SaveChangesAsync();
                 await dBContext1.SaveChangesAsync();
+
+                //----------------------------------------------------------
+
 
                 return Ok(new
                 {

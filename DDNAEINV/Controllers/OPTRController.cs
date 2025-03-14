@@ -276,7 +276,7 @@ namespace DDNAEINV.Controllers
                 }
 
 
-                // Fetch existing items by PAR No
+                // Fetch existing items by OPR No
                 var existingItems = await dBContext.OPRItems.ToListAsync();
 
 
@@ -310,6 +310,7 @@ namespace DDNAEINV.Controllers
                         existingProperty.PropertyNo = updatedItem.PropertyNo;
                         existingProperty.IssuedBy = details.issuedBy;
                         existingProperty.ReceivedBy = details.receivedBy;
+                        existingProperty.ApprovedBy = details.approvedBy;
                         existingProperty.CreatedBy = details.createdBy;
                         existingProperty.Date_Created = DateTime.Now;
                     }
@@ -325,6 +326,7 @@ namespace DDNAEINV.Controllers
                             PropertyNo = updatedItem.PropertyNo,
                             IssuedBy = details.issuedBy,
                             ReceivedBy = details.receivedBy,
+                            ApprovedBy = details.approvedBy,
                             CreatedBy = details.createdBy,
                             Date_Created = DateTime.Now,
                         };

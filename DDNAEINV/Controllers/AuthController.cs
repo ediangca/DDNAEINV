@@ -40,7 +40,7 @@ namespace DDNAEINV.Controllers
                 return Unauthorized(new { message = "Either Username and Password is Invalid!" });
 
             if (account.isVerified == false)
-                return BadRequest(new { message = "Unverified Account, Contact Administrator!" });
+                return BadRequest(new { message = "Unverified Account, Please Contact Administrator!" });
 
 
             var userGroup = dBContext.UserGroups.Find(account.UGID);
