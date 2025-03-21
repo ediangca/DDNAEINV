@@ -116,6 +116,9 @@ namespace DDNAEINV.Controllers
                     case "sopb5":
                         result = dBContext.ListofBelow50KOffices.OrderBy(x => x.Office);
                         break;
+                    case "soop":
+                        result = dBContext.ListofOtherPropOffices.OrderBy(x => x.Office);
+                        break;
                     default:
                         // Return an empty result when no matching module is found
                         return Ok(result);
@@ -245,7 +248,7 @@ namespace DDNAEINV.Controllers
         {
             if (office != null)
             {
-                return dBContext.ListOfAbove50KByOffice.Where(x => x.ReceivedByOffice == office);
+                return dBContext.ListOfAbove50KByOffice.Where(x => x.ReceivedByOffice == office && x.PrsFlag == false);
             }
             return dBContext.ListOfAbove50KByOffice;
         }
@@ -256,9 +259,23 @@ namespace DDNAEINV.Controllers
         {
             if (office != null)
             {
-                return dBContext.ListOfBelow50KByOffice.Where(x => x.ReceivedByOffice == office);
+                return dBContext.ListOfBelow50KByOffice.Where(x => x.ReceivedByOffice == office && x.rrsepFlag == false);
             }
             return dBContext.ListOfBelow50KByOffice;
+        }
+
+
+        // localhost:port/api/Report/SOPA5/{office}
+        [HttpGet]
+        [Route("SOOP")]
+        public IQueryable<SummaryItemsOtherDetailsVw> ListOfOtherItemsByOffice(string? office)
+        {
+            if (office != null)
+            {
+                //Update this to exempt those return
+                return dBContext.ListOfOtherPropByOffice.Where(x => x.ReceivedByOffice == office && x.oprrFlag == false) ;
+            }
+            return dBContext.ListOfOtherPropByOffice;
         }
     }
 

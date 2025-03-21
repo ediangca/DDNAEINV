@@ -37,10 +37,10 @@ namespace DDNAEINV.Controllers
             if (account == null)
                 return BadRequest(new { message = "User is not Authenticated!" });
             if (!hasher.VerifyPassword(account.Password, auth.Password))
-                return Unauthorized(new { message = "Either Username and Password is Invalid!" });
+                return Unauthorized(new { message = "Either Username and Password  is Invalid!" });
 
             if (account.isVerified == false)
-                return BadRequest(new { message = "Unverified Account, Please Contact Administrator!" });
+                return BadRequest(new { message = "Unverified Account, Please Contact System Administrator!" });
 
 
             var userGroup = dBContext.UserGroups.Find(account.UGID);

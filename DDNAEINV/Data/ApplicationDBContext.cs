@@ -94,6 +94,7 @@ namespace DDNAEINV.Data
         public DbSet<OPRROfficesVw> ListOPRROffices { get; set; }
         public DbSet<Above50KOffices> ListofAbove50KOffices { get; set; }
         public DbSet<Below50KOffices> ListofBelow50KOffices { get; set; }
+        public DbSet<OtherPropertyOffices> ListofOtherPropOffices { get; set; }
 
         public DbSet<TotalAbove50ItemsByOfficeVw> TotalAbove50ItemsByOffice { get; set; } //List of Above 50k Items By Office
 
@@ -112,6 +113,7 @@ namespace DDNAEINV.Data
 
         public DbSet<SummaryItemsA50kDetailsVw> ListOfAbove50KByOffice { get; set; } //List of Above 50K Items Details
         public DbSet<SummaryItemsB50kDetailsVw> ListOfBelow50KByOffice { get; set; } //List of Below 50K Items Details
+        public DbSet<SummaryItemsOtherDetailsVw> ListOfOtherPropByOffice { get; set; } //List of Below 50K Items Details
 
         //Function
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -521,6 +523,12 @@ namespace DDNAEINV.Data
             {
                 entity.HasNoKey();
             });
+            modelBuilder.Entity<OtherPropertyOffices>().ToView("ListofOtherPropOffices");
+            modelBuilder.Entity<OtherPropertyOffices>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
             modelBuilder.Entity<SummaryItemsA50kDetailsVw>().ToView("ListOfAbove50KByOffice");
             modelBuilder.Entity<SummaryItemsA50kDetailsVw>(entity =>
             {
@@ -531,6 +539,12 @@ namespace DDNAEINV.Data
             {
                 entity.HasNoKey();
             });
+            modelBuilder.Entity<SummaryItemsOtherDetailsVw>().ToView("ListOfOtherPropByOffice");
+            modelBuilder.Entity<SummaryItemsOtherDetailsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+           
 
 
             modelBuilder.Entity<PropertyDetailsVw>().ToView("ListOfProperty");
