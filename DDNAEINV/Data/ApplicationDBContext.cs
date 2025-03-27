@@ -63,11 +63,6 @@ namespace DDNAEINV.Data
         public DbSet<PRSVw> ListOfPRS { get; set; } //List of PRS
         public DbSet<OPRRVw> ListOfOPRR { get; set; } //List of OPRR
 
-
-        public DbSet<PropertyDetailsVw> ListOfProperty { get; set; } //PropertyCardDetails
-        public DbSet<PropertyCardDetailsVw> PropertyCardDetails { get; set; } //PropertyCardDetails
-
-
         public DbSet<ICSItemVw> ListOfPostedICSItems { get; set; } //List of Posted ICS Items
 
 
@@ -98,6 +93,8 @@ namespace DDNAEINV.Data
 
         public DbSet<TotalAbove50ItemsByOfficeVw> TotalAbove50ItemsByOffice { get; set; } //List of Above 50k Items By Office
 
+
+
         //Reports View
         public DbSet<PARItemsDetailsVw> ListOfPARByOffice { get; set; } //List of PAR Items Details
         public DbSet<REPARItemsDetailsVw> ListOfREPARByOffice { get; set; } //List of REPAR Items Details
@@ -114,6 +111,12 @@ namespace DDNAEINV.Data
         public DbSet<SummaryItemsA50kDetailsVw> ListOfAbove50KByOffice { get; set; } //List of Above 50K Items Details
         public DbSet<SummaryItemsB50kDetailsVw> ListOfBelow50KByOffice { get; set; } //List of Below 50K Items Details
         public DbSet<SummaryItemsOtherDetailsVw> ListOfOtherPropByOffice { get; set; } //List of Below 50K Items Details
+
+        public DbSet<PropertyDetailsVw> ListOfProperty { get; set; } //PropertyCardDetails
+        public DbSet<PropertyCardDetailsVw> PropertyCardDetails { get; set; } //PropertyCardDetails
+
+        public DbSet<ListofPropertiesByOwnerVw> ListOfPropertyOwner { get; set; } //PropertyOwnerDetails
+        public DbSet<ListOfPropertiesVw> ListOfProperties { get; set; } //DetailsPropertiesOwnerDetails
 
         //Function
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -559,7 +562,19 @@ namespace DDNAEINV.Data
                 entity.HasNoKey();
             });
 
-            
+
+
+            modelBuilder.Entity<ListofPropertiesByOwnerVw>().ToView("ListofPropertiesByOwner");
+            modelBuilder.Entity<ListofPropertiesByOwnerVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<ListOfPropertiesVw>().ToView("ListOfProperties");
+            modelBuilder.Entity<ListOfPropertiesVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
 
 
             base.OnModelCreating(modelBuilder);

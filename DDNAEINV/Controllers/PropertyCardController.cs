@@ -47,17 +47,18 @@ namespace DDNAEINV.Controllers
             x.Approved.ToString().Contains(key) || x.Date_Created.ToString().Contains(key))
                 .OrderByDescending(x => x.Date_Created);
         }
-                
+
         // localhost:port/api/PropertyCard/PropertyList/
         [HttpGet]
-        [Route("PropertyList")]
+        [Route("PropertyCardList")]
         public IQueryable<PropertyDetailsVw> PropertyList(string category, string key)
         {
             IQueryable<PropertyDetailsVw> properties;
 
             Debug.Print("Category >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + category);
 
-            switch (category) { 
+            switch (category)
+            {
                 case "Above50k":
 
                     properties = dBContext.ListOfProperty.Where(x =>
@@ -89,6 +90,25 @@ namespace DDNAEINV.Controllers
             return properties;
 
         }
+
+
+        // localhost:port/api/PropertyCard/PropertyOwnerList/
+        [HttpGet]
+        [Route("PropertyCardOwnerList")]
+        public IQueryable<PropertyCardDetailsVw> PropertyCardListOwner(string key)
+        {
+            return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy.ToString().ToLower().Contains(key) || x.Received.ToString().ToLower().Contains(key));
+        }
+
+        // localhost:port/api/PropertyCard/PropertyOwnerList/
+        [HttpGet]
+        [Route("PropertyOwnerList")]
+        public IQueryable<ListofPropertiesByOwnerVw> PropertyListOwner(string key)
+        {
+            return dBContext.ListOfPropertyOwner.Where(x => x.AccountID.ToString().ToLower().Contains(key) || x.AccountName.ToString().ToLower().Contains(key));
+
+        }
+
 
         // localhost:port/api/PropertyCard/SearchByCategoryAndID/
         [HttpGet]
@@ -123,6 +143,24 @@ namespace DDNAEINV.Controllers
                     return dBContext.PropertyCardDetails.Where(x =>
                     x.PropertyNo.ToString().ToLower().Equals(key) || x.QRCode.ToString().ToLower().Equals(key));
             }
+
+        }
+        // localhost:port/api/PropertyCard/SearchByLogAccount/
+        [HttpGet]
+        [Route("SearchByLogAccount")]
+        public IQueryable<PropertyCardDetailsVw> SearchByLogAccount(string accountID)
+        {
+            //x.IssuedBy == accountID ||
+            return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy == accountID);
+
+        }
+
+        // localhost:port/api/PropertyCard/SearchByAccount/
+        [HttpGet]
+        [Route("SearchByAccount")]
+        public IQueryable<ListOfPropertiesVw> SearchByAccount(string accountID)
+        {
+            return dBContext.ListOfProperties.Where(x => x.Received == accountID);
 
         }
 
