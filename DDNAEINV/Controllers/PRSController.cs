@@ -359,9 +359,6 @@ namespace DDNAEINV.Controllers
             // Nullify PRS No and update prsFlag
             foreach (var item in prsItems)
             {
-                item.PRSNo = null;
-                item.prsFlag = false;
-
                 var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.REF == "PRS" && x.PropertyNo == item.PropertyNo);
 
                 if (cardExist != null)
@@ -369,6 +366,10 @@ namespace DDNAEINV.Controllers
                     dBContext1.PropertyCards.Remove(cardExist);
                     await dBContext1.SaveChangesAsync();  // Ensure save is async
                 }
+                // Update the PRS properties
+                item.PRSNo = null;
+                item.prsFlag = false;
+
             }
 
             // Save changes if any items were updated

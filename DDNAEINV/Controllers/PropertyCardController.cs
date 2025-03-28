@@ -95,10 +95,27 @@ namespace DDNAEINV.Controllers
         // localhost:port/api/PropertyCard/PropertyOwnerList/
         [HttpGet]
         [Route("PropertyCardOwnerList")]
-        public IQueryable<PropertyCardDetailsVw> PropertyCardListOwner(string key)
+        //public IQueryable<PropertyCardDetailsVw> PropertyCardListOwner(string key)
+        //{
+        //    //return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy.ToString().ToLower().Contains(key) || x.Received.ToString().ToLower().Contains(key));
+        //    return dBContext.PropertyCardDetails.Where(x => (x.ReceivedBy ?? "").ToLower().Contains(key) || (x.Received ?? "").ToLower().Contains(key)).GroupBy(x => x.Received);
+        //}
+        public List<object> PropertyCardListOwner(string key)
         {
-            return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy.ToString().ToLower().Contains(key) || x.Received.ToString().ToLower().Contains(key));
+            var list = dBContext.PropertyCardDetails
+                .Where(x => (x.ReceivedBy ?? "").ToLower().Contains(key) || (x.Received ?? "").ToLower().Contains(key))
+                .AsEnumerable() // Convert to LINQ-to-Objects before GroupBy
+                .GroupBy(x => x.Received)
+                .Select(group => new
+                {
+                    Received = group.Key,
+                    Items = group.ToList() // List of PropertyCardDetailsVw
+                })
+                .ToList();
+
+            return list.Cast<object>().ToList(); // Ensure return type matches
         }
+
 
         // localhost:port/api/PropertyCard/PropertyOwnerList/
         [HttpGet]
@@ -151,7 +168,7 @@ namespace DDNAEINV.Controllers
         public IQueryable<PropertyCardDetailsVw> SearchByLogAccount(string accountID)
         {
             //x.IssuedBy == accountID ||
-            return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy == accountID);
+            return dBContext.PropertyCardDetails.Where(x => x.ReceivedBy == accountID || x.IssuedBy == accountID);
 
         }
 

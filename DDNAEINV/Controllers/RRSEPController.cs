@@ -350,19 +350,28 @@ namespace DDNAEINV.Controllers
             await dBContext.SaveChangesAsync();  // Ensure save is async
 
             // Fetch existing ICS items by PRS No
-            var prsItems = await dBContext.ICSItems
+            var rrsepItems = await dBContext.ICSItems
                                                .Where(x => x.RRSEPNo == id)
                                                .ToListAsync();
 
             // Nullify PRS No and update prsFlag
-            foreach (var reparItem in prsItems)
+            foreach (var item in rrsepItems)
             {
-                reparItem.RRSEPNo = null;
-                reparItem.rrsepFlag = false;
+
+                var cardExist = await dBContext1.PropertyCards.FirstOrDefaultAsync(x => x.REF == "RRSEP" && x.PropertyNo == item.PropertyNo);
+
+                if (cardExist != null)
+                {
+                    dBContext1.PropertyCards.Remove(cardExist);
+                    await dBContext1.SaveChangesAsync();  // Ensure save is async
+                }
+                // Update the RRSEP properties
+                item.RRSEPNo = null;
+                item.rrsepFlag = false;
             }
 
             // Save changes if any items were updated
-            if (prsItems.Count > 0)
+            if (rrsepItems.Count > 0)
             {
                 await dBContext.SaveChangesAsync();  // Use async save
             }

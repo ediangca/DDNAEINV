@@ -376,15 +376,14 @@ namespace DDNAEINV.Controllers
             await dBContext.SaveChangesAsync();  // Ensure save is async
 
             // Fetch existing OPR items by OPR No
-            var oprItems = await dBContext.OPRItems
+            var oprrItems = await dBContext.OPRItems
                                                .Where(x => x.OPRRNo == id)
                                                .ToListAsync();
 
             // Nullify OPRR No and update oprrFlag
-            foreach (var oprItem in oprItems)
+            foreach (var oprItem in oprrItems)
             {
 
-                // Update the OPRR properties
                 var existInCard = await dBContext1.PropertyCards.Where(x => x.REF == "OPRR" && x.REFNoTo == oprItem.OPRRNo && x.PropertyNo == oprItem.PropertyNo).FirstOrDefaultAsync();
 
                 if (existInCard != null)
@@ -392,13 +391,14 @@ namespace DDNAEINV.Controllers
                     dBContext1.PropertyCards.Remove(existInCard);
                     await dBContext1.SaveChangesAsync();
                 }
+                // Update the OPRR properties
                 oprItem.OPRRNo = null;
                 oprItem.oprrFlag = false;
 
             }
 
             // Save changes if any items were updated
-            if (oprItems.Count > 0)
+            if (oprrItems.Count > 0)
             {
                 await dBContext.SaveChangesAsync();  // Use async save
             }
