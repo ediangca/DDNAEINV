@@ -11,8 +11,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DDNAEINVAPP",
         builder => builder
-            //.AllowAnyOrigin()
-            .WithOrigins("http://localhost:4200", "http://localhost")
+            .AllowAnyOrigin()
+            //.WithOrigins("http://localhost:4200", "http://localhost", "http://143.44.187.100")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });

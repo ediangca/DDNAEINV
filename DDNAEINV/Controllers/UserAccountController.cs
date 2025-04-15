@@ -305,5 +305,41 @@ namespace DDNAEINV.Controllers
         }
 
 
+        [HttpPut]
+        [Route("leave")]
+        public IActionResult leave(string id, Leave leave)
+        {
+
+
+            // Find the User Account by id
+            var userAccount = dBContext.UserAccounts.Find(id);
+            if (userAccount != null)
+                return BadRequest(new { message = "User Account not Found!" });
+
+
+            var hasLeaveAccount = dBContext.Leaves.FirstOrDefault(x => x.UserID == id);
+
+            if (hasLeaveAccount != null)
+            {
+                // Save changes to the database
+                hasLeaveAccount.Remarks = leave.Remarks;
+                hasLeaveAccount.CareOfID = leave.CareOfID;
+                hasLeaveAccount.Date_Created = DateTime.Now;
+            }
+            else
+            {
+                // Create Leave
+                dBContext.Leaves.Add(leave);
+            }
+
+
+            dBContext.SaveChanges();
+
+            return Ok(new
+            {
+                message = "Leave Successfully Saved!"
+            });
+        }
+
     }
 }

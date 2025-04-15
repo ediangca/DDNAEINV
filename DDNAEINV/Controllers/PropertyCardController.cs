@@ -2,6 +2,7 @@
 using DDNAEINV.Model.Details;
 using DDNAEINV.Model.Entities;
 using DDNAEINV.Model.Views;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -11,8 +12,10 @@ using System.Linq;
 
 namespace DDNAEINV.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
+
     public class PropertyCardController : ControllerBase
     {
 
@@ -26,6 +29,7 @@ namespace DDNAEINV.Controllers
 
 
 
+        [Authorize]
         // localhost:port/api/PropertyCard
         [HttpGet]
         public IActionResult List()

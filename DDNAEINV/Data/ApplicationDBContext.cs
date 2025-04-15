@@ -44,6 +44,9 @@ namespace DDNAEINV.Data
         public DbSet<Module> Modules { get; set; }
         public DbSet<Privilege> Privileges { get; set; }
 
+
+        public DbSet<Leave> Leaves { get; set; }
+
         //Views
 
 
