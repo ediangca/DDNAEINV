@@ -9,11 +9,11 @@ namespace DDNAEINV.Model.Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int? LeaveID { get; set; } = 0;
+        public int? LeaveID { get; set; } = null;
         public required string UserID { get; set; }
         public required string Remarks { get; set; }
-        public required string CareOfID { get; set; }
-        public required DateTime Date_Created { get; set; }
+        public required string CareOfUserID { get; set; }
+        public DateTime? Date_Created { get; set; }
 
     }
 }

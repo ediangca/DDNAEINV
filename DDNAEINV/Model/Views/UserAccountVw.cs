@@ -10,6 +10,7 @@
         public string UserGroupName { get; set; } = string.Empty;
         public string? Token { get; set; }
         public bool? isVerified { get; set; } = false;
+        public bool? isLeave { get; set; } = false;
         public DateTime Date_Created { get; set; }
         public DateTime Date_Updated { get; set; }
     }

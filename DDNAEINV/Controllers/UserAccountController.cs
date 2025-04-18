@@ -105,7 +105,6 @@ namespace DDNAEINV.Controllers
 
         // localhost:port/api/UserAccount/{id}
         [HttpGet("{id}")]
-        //[Route("{string:int}")]
         public IActionResult Retrieve(string id)
         {
 
@@ -269,6 +268,29 @@ namespace DDNAEINV.Controllers
             });
         }
 
+        [HttpPut("Update/Leave")]
+        public IActionResult UpdateLeave(string id)
+        {
+            // Find the User Account by id
+            var userAccount = dBContext.UserAccounts.Find(id);
+
+
+            if (userAccount == null)
+                return BadRequest(new { message = "No User Account Found!" });
+
+            // Update the properties
+            userAccount.isLeave = !(userAccount.isLeave);
+
+            // Save changes to the database
+            dBContext.SaveChanges();
+
+            //return Ok(userAccount);
+            return Ok(new
+            {
+                message = "Leave status updated!"
+            });
+        }
+
         // localhost:port/api/UserGroup/Delete
         [HttpDelete]
         [Route("Delete")]
@@ -305,15 +327,50 @@ namespace DDNAEINV.Controllers
         }
 
 
+        [HttpGet("leave/{UserID}")]
+        public IActionResult RetrieveLeave(string UserID)
+        {
+
+            var leave = dBContext.ListOfLeave.FirstOrDefault(x => x.UserID == UserID);
+            if (leave == null)
+                return BadRequest(new { message = "No Leave Found!" });
+
+            return Ok(leave);
+        }
+
+
+        [HttpPut("status/Update")]
+        public IActionResult UpdateStatus(string id)
+        {
+            // Find the User Account by id
+            var userAccount = dBContext.UserAccounts.Find(id);
+
+
+            if (userAccount == null)
+                return BadRequest(new { message = "User Account not Found!" });
+
+            // Update the properties
+            userAccount.isLeave = !(userAccount.isLeave);
+
+            // Save changes to the database
+            dBContext.SaveChanges();
+
+            //return Ok(userAccount);
+            return Ok(new
+            {
+                message = "Status successfully Active!"
+            });
+        }
+
         [HttpPut]
-        [Route("leave")]
+        [Route("leave/update")]
         public IActionResult leave(string id, Leave leave)
         {
 
 
             // Find the User Account by id
             var userAccount = dBContext.UserAccounts.Find(id);
-            if (userAccount != null)
+            if (userAccount == null)
                 return BadRequest(new { message = "User Account not Found!" });
 
 
@@ -322,12 +379,16 @@ namespace DDNAEINV.Controllers
             if (hasLeaveAccount != null)
             {
                 // Save changes to the database
+                //UserAccount
+                userAccount.isLeave = true;
+                //Leave
                 hasLeaveAccount.Remarks = leave.Remarks;
-                hasLeaveAccount.CareOfID = leave.CareOfID;
+                hasLeaveAccount.CareOfUserID = leave.CareOfUserID;
                 hasLeaveAccount.Date_Created = DateTime.Now;
             }
             else
             {
+                userAccount.isLeave = true;
                 // Create Leave
                 dBContext.Leaves.Add(leave);
             }
@@ -337,7 +398,7 @@ namespace DDNAEINV.Controllers
 
             return Ok(new
             {
-                message = "Leave Successfully Saved!"
+                message = "Status successfully Inactive!"
             });
         }
 

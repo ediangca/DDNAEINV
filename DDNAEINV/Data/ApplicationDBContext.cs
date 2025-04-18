@@ -59,6 +59,8 @@ namespace DDNAEINV.Data
         public DbSet<ItemVw> ListOfItem { get; set; } //List of Item
 
 
+        public DbSet<LeaveVw> ListOfLeave { get; set; } //List of Leave
+
         public DbSet<ParVw> ListOfPar { get; set; } //List of PAR
         public DbSet<RePARVw> ListOfREPar { get; set; } //List of REPAR
         public DbSet<OPRVw> ListOfOPR { get; set; } //List of OPR
@@ -158,6 +160,14 @@ namespace DDNAEINV.Data
                 entity.Property(e => e.PositionID)
                     .ValueGeneratedOnAdd(); // Configuring auto-increment
             });
+            modelBuilder.Entity<Leave>(entity =>
+            {
+                entity.HasKey(e => e.LeaveID); // Configuring primary key
+                                                  // Other configurations...
+                entity.Property(e => e.LeaveID)
+                    .ValueGeneratedOnAdd(); // Configuring auto-increment
+            });
+
             modelBuilder.Entity<UserAccount>(entity =>
             {
                 entity.HasKey(e => e.UserID); // Configuring primary key
@@ -308,6 +318,12 @@ namespace DDNAEINV.Data
 
             modelBuilder.Entity<UserAccountsVw>().ToView("ListOfUserAccount");
             modelBuilder.Entity<UserAccountsVw>(entity =>
+            {
+                entity.HasNoKey();
+            });
+
+            modelBuilder.Entity<LeaveVw>().ToView("ListOfLeave");
+            modelBuilder.Entity<LeaveVw>(entity =>
             {
                 entity.HasNoKey();
             });
